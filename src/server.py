@@ -8,7 +8,7 @@ import sys
 # CREATE A SERVER --------------------------------------------|
 
 if __name__ == "__main__":
-    msg = sys.argv
+    msg = sys.argv[1:]
     print(msg)
     SERVER = "/tmp/uds_socket"
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
