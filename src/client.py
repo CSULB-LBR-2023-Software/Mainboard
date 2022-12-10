@@ -2,7 +2,7 @@ import socket
 import sys
 
 from cam import cam
-from gimbal import gimbal
+# from gimbal import gimbal
 
 
 # EXECUTE CAMERA FUNCTIONS ---------------------------------------|
