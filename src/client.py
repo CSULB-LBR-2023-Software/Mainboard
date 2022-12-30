@@ -18,6 +18,8 @@ def runCam(f: str, dir: str):
     comms = seq[1].split(" ") if len(seq) > 1 else seq
     while len(comms) > 0:
         next = comms.pop(0)
+        if len(next) > 2:
+            next = next[:2]
         if next == "A1":
             pass  # gimbal 60 deg right
         elif next == "B2":
