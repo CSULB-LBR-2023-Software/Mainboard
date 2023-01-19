@@ -1,4 +1,6 @@
 import time
+import numpy as np
+
 import board
 import adafruit_bno055
 import adafruit_bmp3xx
@@ -18,14 +20,14 @@ def printout():
     print("Pressure: {:6.4f}  Temperature: {:5.2f}".format(alt.pressure, alt.temperature))
 
 def average(sensor, samples):
-
+    total = (0, 0, 0)
     for x in range(samples):
-        total += sensor.acceleration
+        total += np.add(total, imu.acceleration)
     
     return total / samples
 
 while True:
     
-    averageAcceleration = average(alt, 5)
+    averageAcceleration = average(imu, 5)
     print(averageAcceleration)
     time.sleep(1)
