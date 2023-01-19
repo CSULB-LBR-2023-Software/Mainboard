@@ -16,6 +16,7 @@ while True:
     print("Quaternion: {}".format(imu.quaternion))
     print("Linear acceleration (m/s^2): {}".format(imu.linear_acceleration))
     print("Gravity (m/s^2): {}".format(imu.gravity))
+    print("Calibration Status {}".format(imu.get_calibration_status))
     print("Pressure: {:6.4f}  Temperature: {:5.2f}".format(alt.pressure, alt.temperature))
 
     time.sleep(1)
