@@ -1,6 +1,7 @@
 import time
 import board
 import adafruit_bno055
+import adafruit_bmp3xx
 
 i2c = board.I2C() 
 imu = adafruit_bno055.BNO055_I2C(i2c)
