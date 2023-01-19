@@ -4,12 +4,26 @@ import os
 import socket
 import sys
 
+CALLSIGN = "XX4XXX "
+
+# PROCESS INCOMING DATA --------------------------------------|
+
+def process(msg: str) -> list:
+    """
+    Processes incoming command string.
+    @param string args
+    @return list of commands
+    """
+    print(msg)
+    for val in msg:
+        seq = val.split(CALLSIGN)
+        comms = seq[1].split(" ") if len(seq) > 1 else seq
+    return comms
+
 
 # CREATE A SERVER --------------------------------------------|
 
 if __name__ == "__main__":
-    msg = sys.argv[1:]
-    print(msg)
     SERVER = "/tmp/uds_socket"
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
@@ -27,8 +41,18 @@ if __name__ == "__main__":
         try:
             client, client_addy = sock.accept()
             print(f"Connection to {client_addy} established.")
+            line = sys.stdin.readline()
+            if not line:
+                continue
+            elif line == "XX4XXX exit":
+                break
+            msg = process(line)
             for val in msg:
-                client.send(bytes(val, "utf-8"))
+                if val == "X1":
+                    sock.close()
+                    break
+                else:
+                    client.send(bytes(val, "utf-8"))
         finally:
             print("Closing connection")
             sock.close()

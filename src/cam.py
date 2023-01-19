@@ -32,6 +32,7 @@ class cam:
         """
         Takes a photo
         Radio Commands: C3
+        Last State: 0 - grayscale, 1 - Flipped 180 deg, 2 - sharpened filter
         @return True if photo taken
         """
         ret, frame = self.cam.read()

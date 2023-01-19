@@ -19,7 +19,22 @@ class BMP:
 		self.bmp.temperature_oversampling = 2
 
 	def alt(self):
+		'''
+		Returns altitude based on BMP390
+		'''
 		return self.bmp.altitude
+
+	def temp(self):
+		'''
+		Returns temperature based on BMP390
+		'''
+		return self.bmp.temperature
+
+	def pressure(self):
+		'''
+		Returns pressure based on BMP390
+		'''
+		return self.bmp.pressure
 
 	def __str__(self):
 		s = f"Temp: {self.bmp.temperature}, Pressure: {self.bmp.pressure}, \
