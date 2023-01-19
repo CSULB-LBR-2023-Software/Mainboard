@@ -17,6 +17,15 @@ def printout():
     print("Gravity (m/s^2): {}".format(imu.gravity))
     print("Pressure: {:6.4f}  Temperature: {:5.2f}".format(alt.pressure, alt.temperature))
 
+def average(sensor, samples):
+
+    for x in range(samples):
+        total += sensor.acceleration
+    
+    return total / samples
+
 while True:
-    printout()
+    
+    averageAcceleration = average(alt, 5)
+    print(averageAcceleration)
     time.sleep(1)
