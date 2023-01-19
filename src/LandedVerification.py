@@ -22,9 +22,11 @@ def printout():
 def average(sensor, samples):
     total = (0, 0, 0)
     for x in range(samples):
-        total += np.add(total, imu.acceleration)
+        value = sensor.acceleration
+        if(value is not None):
+            total += np.add(total, sensor.acceleration)
     
-    return total / samples
+    return np.divide(total, (samples, samples, samples))
 
 while True:
     
