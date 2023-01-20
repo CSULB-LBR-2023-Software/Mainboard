@@ -19,17 +19,30 @@ def printout():
     print("Gravity (m/s^2): {}".format(imu.gravity))
     print("Pressure: {:6.4f}  Temperature: {:5.2f}".format(alt.pressure, alt.temperature))
 
-def average(sensor, samples):
-    total = (0, 0, 0)
-    for x in range(samples):
-        value = sensor.acceleration
-        if(value is not None):
-            total += np.add(total, sensor.acceleration)
-    
-    return np.divide(total, (samples, samples, samples))
+def average(sensor, value, samples):
+   
+    try:
+        total = []
+        for x in range(samples):
+            total.append(getattr(sensor, value))
+
+        return np.average(total, axis = 0)
+
+    except TypeError:
+        total = list(filter((None, None, None).__ne__, total))
+        return np.average(total, axis = 0)
+
 
 while True:
+    start = time.time()
+    print(average(imu, "acceleration", 500))
+    end = time.time() - start
+    print("Time: {} \n".format(end))
     
-    averageAcceleration = average(imu, 5)
-    print(averageAcceleration)
+    start = time.time()
+    print(average(alt, "pressure", 500))
+    end = time.time() - start
+    print("Time: {} \n".format(end))
+
+
     time.sleep(1)
