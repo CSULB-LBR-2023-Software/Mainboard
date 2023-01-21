@@ -28,32 +28,35 @@ def average(sensor, value, samples):
     return np.average(total, axis = 0)
 
 
+
 def decreasing(sensor, value, samples):
-    x = 0
-    while(x < 1000):
+
+    total = []
+    time = []
+    for x in range(samples):
+        start = time.time()
         
-        sample1 = []
-        sample2 = []
-
-        sample1 = average(sensor, value, samples)
-        sample2 = average(sensor, value, samples)
-
-        difference = np.subtract(sample1, sample2)
+        sample = getattr(sensor, value)
+        while(sample = (None))
         
-        if(difference < 0):
-            x += 1
-
-
-while True:
-    start = time.time()
-    print(average(imu, "acceleration", 500))
-    end = time.time() - start
-    print("Time: {} \n".format(end))
+        total.append(sample)
+        time.append(time.time() - start)
     
-    start = time.time()
-    print(average(alt, "pressure", 500))
-    end = time.time() - start
-    print("Time: {} \n".format(end))
+    print(total)
+    print(time)
+        
 
 
+
+
+
+
+#groundAlt = average(alt, "pressure", 10)
+#while( (average(alt, "pressure", 10) < 10) and (average(imu.linear_acceleration) < (5, 5, 5)))
+#LaunchedFlag = 1
+
+while True: 
+    decreasing(alt, "pressure", 100)
     time.sleep(1)
+
+
