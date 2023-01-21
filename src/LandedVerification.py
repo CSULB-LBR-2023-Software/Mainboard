@@ -32,18 +32,18 @@ def average(sensor, value, samples):
 def decreasing(sensor, value, samples):
 
     total = []
-    time = []
+    timestamp = []
     for x in range(samples):
         start = time.time()
         
         sample = getattr(sensor, value)
-        while(sample = (None))
-        
+
         total.append(sample)
-        time.append(time.time() - start)
+        timestamp.append(time.time() - start)
     
-    print(total)
-    print(time)
+    #first derivative
+    dydx = diff(total) / diff(x)
+    return dydx
         
 
 
