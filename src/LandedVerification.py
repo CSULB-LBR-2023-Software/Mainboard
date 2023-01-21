@@ -20,17 +20,13 @@ def printout():
     print("Pressure: {:6.4f}  Temperature: {:5.2f}".format(alt.pressure, alt.temperature))
 
 def average(sensor, value, samples):
-   
-    try:
-        total = []
-        for x in range(samples):
-            total.append(getattr(sensor, value))
+    total = []
+    for x in range(samples):
+        total.append(getattr(sensor, value))
+    
+    total = list(filter((None, None, None).__ne__, total))
+    return np.average(total, axis = 0)
 
-        return np.average(total, axis = 0)
-
-    except TypeError:
-        total = list(filter((None, None, None).__ne__, total))
-        return np.average(total, axis = 0)
 
 def decreasing(sensor, value, samples):
     x = 0
@@ -46,7 +42,6 @@ def decreasing(sensor, value, samples):
         
         if(difference < 0):
             x += 1
-
 
 
 while True:
