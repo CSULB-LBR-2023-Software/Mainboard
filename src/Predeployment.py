@@ -39,7 +39,8 @@ def average(sensor, value, samples):
     total = []
     for x in range(samples):
         total.append(getattr(sensor, value))
-    
+
+    #filter None that can ocasionally return from IMU    
     total = list(filter((None, None, None).__ne__, total))
     return np.average(total, axis = 0)
 
@@ -49,6 +50,7 @@ groundAlt = average(alt, "altitude", 10)
 
 while True: 
 
+    #break if altitude and acceleration threshold exceeded
     if average(alt, "altitude", 10) < groundAlt + LAUNCH_ALT_THRESH:
         continue
 
@@ -62,12 +64,12 @@ LaunchFlag = True
 
 #Apogee and descent checks
 while True:
-    #check for apogee
+    #break if apogee detected
     if average(alt, "altitude", 10) > groundAlt + APOGEE:
         ApogeeFlag = True
         break
 
-    #check for descent
+    #break if altitude is descending
     y = []
     x = []
     y.append(average(alt, "altitude", 10))
@@ -84,7 +86,8 @@ while True:
 
 #Landed checks 
 while True:
-    
+
+    #break if below ground and acceleration landing thresholds     
     if average(alt, "altitude", 50) > groundAlt + LAND_ALT_THRESH:
         continue
     
