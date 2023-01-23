@@ -7,6 +7,8 @@ import adafruit_bmp3xx
 
 
 APOGEE = 1371 #4500 ft 
+LAUNCH_ALT_THRESH = 10
+LAUNCH_LIN_ACC_THRESH = 3
 
 LaunchedFlag = 1
 ApogeeFlag = 1
@@ -38,12 +40,14 @@ def average(sensor, value, samples):
 #Pre-launch checks
 groundAlt = average(alt, "altitude", 10)
 
-while (average(alt, "altitude", 10) < groundAlt + 10) and (average(imu, "linear_acceleration", 10) < (3, 3, 3)):
+while average(alt, "altitude", 10) < groundAlt + LAUNCH_ALT_THRESH and \
+      average(imu, "linear_acceleration", 10) < np.fill((1, 3), LAUNCH_LIN_ACC_THRESH):
     pass
 LaunchedFlag = 1
 
 #Apogee and descent checks
 while (not ApogeeFlag) and (not DescentFlag):
+    #check for apogee
     if average(alt, "altitude", 10) < groundAlt + APOGEE:
         ApogeeFlag = 1
 
