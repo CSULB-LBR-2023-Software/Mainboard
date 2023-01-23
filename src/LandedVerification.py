@@ -46,7 +46,7 @@ while average(alt, "altitude", 10) < groundAlt + LAUNCH_ALT_THRESH and \
 LaunchedFlag = 1
 
 #Apogee and descent checks
-while (not ApogeeFlag) and (not DescentFlag):
+while not ApogeeFlag and not DescentFlag:
     #check for apogee
     if average(alt, "altitude", 10) < groundAlt + APOGEE:
         ApogeeFlag = 1
