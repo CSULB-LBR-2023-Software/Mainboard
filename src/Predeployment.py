@@ -8,17 +8,16 @@ import adafruit_bmp3xx
 
 APOGEE = 1371 #4500 ft 
 LAUNCH_ALT_THRESH = 10
-LAUNCH_LIN_ACC_THRESH = 3
+LAUNCH_LIN_ACC_THRESH = (3, 3, 3)
 LAND_ALT_THRESH = 10
-LAND_LIN_ACC_THRESH = 1
+LAND_LIN_ACC_THRESH = (1, 1, 1)
 
-LaunchedFlag = False
+LaunchFlag = False
 ApogeeFlag = False
 DescentFlag = False
-
 LandAltFlag = False
 LandLinAccFlag = False
-LandedFlag = False
+LandFlag = False
 
 i2c = board.I2C() 
 imu = adafruit_bno055.BNO055_I2C(i2c)
@@ -53,18 +52,18 @@ while True:
     if average(alt, "altitude", 10) < groundAlt + LAUNCH_ALT_THRESH:
         continue
 
-    if average(imu, "linear_acceleration", 10) < np.fill((1, 3), LAUNCH_LIN_ACC_THRESH):
+    if average(imu, "linear_acceleration", 10) < LAUNCH_LIN_ACC_THRESH:
         continue
 
     break
 
-LaunchedFlag = True
+LaunchFlag = True
 
 
 #Apogee and descent checks
 while True:
     #check for apogee
-    if average(alt, "altitude", 10) < groundAlt + APOGEE:
+    if average(alt, "altitude", 10) > groundAlt + APOGEE:
         ApogeeFlag = True
         break
 
@@ -78,7 +77,7 @@ while True:
 
     dydx = (diff(y)/diff(x))[0]
 
-    if dydx < 0 :
+    if dydx < 0:
         DescentFlag = True
         break
 
@@ -89,12 +88,12 @@ while True:
     if average(alt, "altitude", 50) > groundAlt + LAND_ALT_THRESH:
         continue
     
-    if average(imu, "linear_acceleration", 50) > np.fill((1, 3), LAND_LIN_ACC_THRESH):
+    if average(imu, "linear_acceleration", 50) > LAND_LIN_ACC_THRESH:
         continue
 
     break
 
-LandedFlag = True
+LandFlag = True
 
     
 
