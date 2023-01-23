@@ -65,7 +65,8 @@ while not ApogeeFlag and not DescentFlag:
         DescentFlag = 1
     
 #Landed checks 
-while average(alt, "altitude", 50) <= groundAlt + 10 and average(imu, "linear_acceleration", 50) < (1, 1, 1):
+while average(alt, "altitude", 50) <= groundAlt + 10 and \
+      average(imu, "linear_acceleration", 50) < (1, 1, 1):
     pass
 LandedFlag = 1
 
