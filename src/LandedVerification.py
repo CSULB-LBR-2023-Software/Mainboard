@@ -15,6 +15,9 @@ LAND_LIN_ACC_THRESH = 1
 LaunchedFlag = 0
 ApogeeFlag = 0
 DescentFlag = 0
+
+LandAltFlag = 0
+LandLinAccFlag = 0
 LandedFlag = 0
 
 i2c = board.I2C() 
@@ -45,18 +48,24 @@ def average(sensor, value, samples):
 #Pre-launch checks
 groundAlt = average(alt, "altitude", 10)
 
-while average(alt, "altitude", 10) < groundAlt + LAUNCH_ALT_THRESH and \
-      average(imu, "linear_acceleration", 10) < np.fill((1, 3), LAUNCH_LIN_ACC_THRESH):
-    pass
+while True: 
+
+    if average(alt, "altitude", 10) < groundAlt + LAUNCH_ALT_THRESH:
+        continue
+
+    if average(imu, "linear_acceleration", 10) < np.fill((1, 3), LAUNCH_LIN_ACC_THRESH):
+        continue
+
+    break
 
 LaunchedFlag = 1
 
 
 #Apogee and descent checks
-while not ApogeeFlag and not DescentFlag:
+while True:
     #check for apogee
     if average(alt, "altitude", 10) < groundAlt + APOGEE:
-        ApogeeFlag = 1
+        break
 
     #check for descent
     y = []
@@ -69,13 +78,22 @@ while not ApogeeFlag and not DescentFlag:
     dydx = (diff(y)/diff(x))[0]
 
     if dydx < 0 :
-        DescentFlag = 1
+        break
+
+ApogeeFlag = 1
+DescentFlag = 1
 
 
 #Landed checks 
-while average(alt, "altitude", 50) <= groundAlt + LAND_ALT_THRESH and \
-      average(imu, "linear_acceleration", 50) < np.fill((1, 3), LAND_LIN_ACC_THRESH):
-    pass
+while True:
+    
+    if average(alt, "altitude", 50) > groundAlt + LAND_ALT_THRESH:
+        continue
+    
+    if average(imu, "linear_acceleration", 50) > np.fill((1, 3), LAND_LIN_ACC_THRESH):
+        continue
+
+    break
 
 LandedFlag = 1
 
