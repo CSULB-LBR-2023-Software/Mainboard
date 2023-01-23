@@ -86,7 +86,3 @@ while True:
     break
 
 LandFlag = True
-
-    
-
-
