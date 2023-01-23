@@ -12,13 +12,13 @@ LAUNCH_LIN_ACC_THRESH = 3
 LAND_ALT_THRESH = 10
 LAND_LIN_ACC_THRESH = 1
 
-LaunchedFlag = 0
-ApogeeFlag = 0
-DescentFlag = 0
+LaunchedFlag = False
+ApogeeFlag = False
+DescentFlag = False
 
-LandAltFlag = 0
-LandLinAccFlag = 0
-LandedFlag = 0
+LandAltFlag = False
+LandLinAccFlag = False
+LandedFlag = False
 
 i2c = board.I2C() 
 imu = adafruit_bno055.BNO055_I2C(i2c)
@@ -58,13 +58,14 @@ while True:
 
     break
 
-LaunchedFlag = 1
+LaunchedFlag = True
 
 
 #Apogee and descent checks
 while True:
     #check for apogee
     if average(alt, "altitude", 10) < groundAlt + APOGEE:
+        ApogeeFlag = True
         break
 
     #check for descent
@@ -78,10 +79,8 @@ while True:
     dydx = (diff(y)/diff(x))[0]
 
     if dydx < 0 :
+        DescentFlag = True
         break
-
-ApogeeFlag = 1
-DescentFlag = 1
 
 
 #Landed checks 
@@ -95,7 +94,7 @@ while True:
 
     break
 
-LandedFlag = 1
+LandedFlag = True
 
     
 
