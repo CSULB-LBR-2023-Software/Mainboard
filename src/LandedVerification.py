@@ -6,9 +6,12 @@ import adafruit_bno055
 import adafruit_bmp3xx
 
 
-LaunchedFlag = 1
 APOGEE = 1371 #4500 ft 
 
+LaunchedFlag = 1
+ApogeeFlag = 1
+DescentFlag = 1
+LandedFlag = 1
 
 i2c = board.I2C() 
 imu = adafruit_bno055.BNO055_I2C(i2c)
@@ -53,11 +56,34 @@ def decreasing(sensor, value, samples):
 
 
 
-#)Pre-launch checks
+#Pre-launch checks
 groundAlt = average(alt, "altitude", 10)
 
-while(average(alt, "altitude", 10) < groundAlt + 10 and average(imu, "linear_acceleration", 10) < (3, 3, 3))
+while( (average(alt, "altitude", 10) < groundAlt + 10) and (average(imu, "linear_acceleration", 10) < (3, 3, 3)) )
 LaunchedFlag = 1
 
+#Apogee and descent checks
+while( (not ApogeeFlag) and (not DescentFlag) ):
+    if(average(alt, "altitude", 10) < groundAlt + APOGEE):
+        ApogeeFlag = 1
+
+    #check for descent
+    y = []
+    x = []
+    y.append(average(alt, "altitude", 10))
+    x.append(time.time())
+    y.append(average(alt, "altitude", 10))
+    x.append(time.time())
+
+    dydx = (diff(y)/diff(x))[0]
+
+    if(dydx < 0):
+        DescentFlag = 1
+    
+#Landed checks 
+while(average(imu))    
 
 
+
+
+while
