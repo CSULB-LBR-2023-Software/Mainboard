@@ -35,36 +35,16 @@ def average(sensor, value, samples):
     total = list(filter((None, None, None).__ne__, total))
     return np.average(total, axis = 0)
 
-
-
-def decreasing(sensor, value, samples):
-
-    total = []
-    timestamp = []
-    for x in range(samples):
-        start = time.time()
-        
-        sample = getattr(sensor, value)
-
-        total.append(sample)
-        timestamp.append(time.time() - start)
-    
-    #first derivative
-    dydx = diff(total) / diff(x)
-    return dydx
-        
-
-
-
 #Pre-launch checks
 groundAlt = average(alt, "altitude", 10)
 
-while( (average(alt, "altitude", 10) < groundAlt + 10) and (average(imu, "linear_acceleration", 10) < (3, 3, 3)) )
+while (average(alt, "altitude", 10) < groundAlt + 10) and (average(imu, "linear_acceleration", 10) < (3, 3, 3)):
+    pass
 LaunchedFlag = 1
 
 #Apogee and descent checks
-while( (not ApogeeFlag) and (not DescentFlag) ):
-    if(average(alt, "altitude", 10) < groundAlt + APOGEE):
+while (not ApogeeFlag) and (not DescentFlag):
+    if average(alt, "altitude", 10) < groundAlt + APOGEE:
         ApogeeFlag = 1
 
     #check for descent
@@ -77,13 +57,14 @@ while( (not ApogeeFlag) and (not DescentFlag) ):
 
     dydx = (diff(y)/diff(x))[0]
 
-    if(dydx < 0):
+    if dydx < 0 :
         DescentFlag = 1
     
 #Landed checks 
-while(average(imu))    
+while average(alt, "altitude", 50) <= groundAlt + 10 and average(imu, "linear_acceleration", 50) < (1, 1, 1):
+    pass
+LandedFlag = 1
+
+    
 
 
-
-
-while
