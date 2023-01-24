@@ -34,6 +34,15 @@ def average(sensor, value, samples):
     total = list(filter((None, None, None).__ne__, total))
     return np.average(total, axis = 0)
 
+def integrate_sensor(sensor, value, samples):
+    for x in range(samples):
+        sample = []
+        t = []
+
+        sample.append(sensor.value)  
+        t.append(time.time())        
+    
+    return integrate.simpson(sample, t)
 
 #Pre-launch checks
 groundAlt = average(alt, "altitude", 10)
@@ -44,22 +53,8 @@ while True:
     if average(alt, "altitude", 10) < groundAlt + LAUNCH_ALT_THRESH:
         continue
 
-    
-    for x in range(10):
-        x = []
-        y = []
-        z = []
-        t = []
-
-        sample = average(alt, "altitude", 3)  
-        x.append(sample[0])
-        y.append(sample[1])
-        z.append(sample[2])
-        t.append(time.time())        
-
-    velocity = integrate.simpson((x, y, z), t)
-    
-    if velocity < LAUNCH_VELOCITY_THRESH: 
+   
+    if  integrate_sensor(imu, "acceleration", 10) < LAUNCH_VELOCITY_THRESH: 
         continue
 
     break
