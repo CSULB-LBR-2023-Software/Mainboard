@@ -25,36 +25,54 @@ imu = adafruit_bno055.BNO055_I2C(i2c)
 alt = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 
 
-def average(sensor, value, samples):
-    total = []
-    for x in range(samples):
-        total.append(getattr(sensor, value))
+class SensorTools:
+    def __init__(self, i2c, imu, alt):
+        self.i2c = i2c
+        self.imu = imu
+        self.alt = alt
+        self.groundAlt = self.average(self.alt, "altitude", 10)
 
-    #filter None that can ocasionally return from IMU    
-    total = list(filter((None, None, None).__ne__, total))
-    return np.average(total, axis = 0)
+    def average(self, sensor, value, samples):
+        total = []
+        for x in range(samples):
+            total.append(getattr(sensor, value))
 
-def integrate_sensor(sensor, value, samples):
-    for x in range(samples):
-        sample = []
+        #filter None that can ocasionally return from IMU    
+        total = list(filter((None, None, None).__ne__, total))
+        return np.average(total, axis = 0)
+
+    def differentiate(self, sensor, value, samples):
+        data = []
         t = []
 
-        sample.append(sensor.value)  
-        t.append(time.time())        
-    
-    return integrate.simpson(sample, t)
+        data.append(self.average(sensor, value, round(samples / 2)))
+        t.append(time.time())
+
+        data.append(self.average(sensor, value, round(samples / 2)))
+        t.append(time.time())
+
+        return np.gradient(data, t)
+
+    def integrate(self, sensor, value, samples):
+        for x in range(samples):
+            sample = []
+            t = []
+
+            sample.append(getattr(sensor, value))  
+            t.append(time.time())        
+        
+        return integrate.simpson(sample, t)
 
 #Pre-launch checks
-groundAlt = average(alt, "altitude", 10)
-
+sensor = SensorTools(i2c, imu, alt)
 while True: 
 
     #break if altitude and acceleration threshold exceeded
-    if average(alt, "altitude", 10) < groundAlt + LAUNCH_ALT_THRESH:
+    if sensor.average(alt, "altitude", 10) < sensor.groundAlt + LAUNCH_ALT_THRESH:
         continue
 
    
-    if  integrate_sensor(imu, "acceleration", 10) < LAUNCH_VELOCITY_THRESH: 
+    if  sensor.integrate(imu, "acceleration", 10) < LAUNCH_VELOCITY_THRESH: 
         continue
 
     break
@@ -65,21 +83,13 @@ LaunchFlag = True
 #Apogee and descent checks
 while True:
     #break if apogee detected
-    if average(alt, "altitude", 10) > groundAlt + APOGEE:
+    if sensor.average(alt, "altitude", 10) > sensor.groundAlt + APOGEE:
         ApogeeFlag = True
         break
 
     #break if altitude is descending
-    y = []
-    x = []
-    y.append(average(alt, "altitude", 10))
-    x.append(time.time())
-    y.append(average(alt, "altitude", 10))
-    x.append(time.time())
 
-    dydx = (diff(y)/diff(x))[0]
-
-    if dydx < 0:
+    if sensor.differentiate(alt, "altitude", 10) < 0:
         DescentFlag = True
         break
 
@@ -88,10 +98,10 @@ while True:
 while True:
 
     #break if below ground and acceleration landing thresholds     
-    if average(alt, "altitude", 50) > groundAlt + LAND_ALT_THRESH:
+    if sensor.average(alt, "altitude", 50) > sensor.groundAlt + LAND_ALT_THRESH:
         continue
     
-    if average(imu, "linear_acceleration", 50) > LAND_LIN_ACC_THRESH:
+    if sensor.average(imu, "linear_acceleration", 50) > LAND_LIN_ACC_THRESH:
         continue
 
     break
