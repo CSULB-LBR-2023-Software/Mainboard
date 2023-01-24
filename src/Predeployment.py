@@ -1,5 +1,6 @@
 import time
 import numpy as np
+from scipy import integrate
 
 import board
 import adafruit_bno055
@@ -8,7 +9,7 @@ import adafruit_bmp3xx
 
 APOGEE = 1371 #4500 ft 
 LAUNCH_ALT_THRESH = 10
-LAUNCH_LIN_ACC_THRESH = (3, 3, 3)
+LAUNCH_VELOCITY_THRESH = (1, 1, -15)
 LAND_ALT_THRESH = 10
 LAND_LIN_ACC_THRESH = (0.25, 0.25, 0.25)
 
@@ -43,7 +44,22 @@ while True:
     if average(alt, "altitude", 10) < groundAlt + LAUNCH_ALT_THRESH:
         continue
 
-    if average(imu, "linear_acceleration", 10) < LAUNCH_LIN_ACC_THRESH:
+    
+    for x in range(10):
+        x = []
+        y = []
+        z = []
+        t = []
+
+        sample = average(alt, "altitude", 3)  
+        x.append(sample[0])
+        y.append(sample[1])
+        z.append(sample[2])
+        t.append(time.time())        
+
+    velocity = integrate.simpson((x, y, z), t)
+    
+    if velocity < LAUNCH_VELOCITY_THRESH: 
         continue
 
     break
