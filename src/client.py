@@ -1,8 +1,8 @@
 import socket
 import sys
 
-from cam import cam
-# from gimbal import gimbal
+import lib.cam as cam
+import lib.logging as log
 
 
 # EXECUTE CAMERA FUNCTIONS ---------------------------------------|
@@ -12,48 +12,53 @@ def runCam(f: str, dir: str):
     @param f - the command sequence
     @param dir - working directory
     """
+    print("in cam")
     camera = cam(dir)
-    next = f
-    if len(next) > 2:
+    com = f.split(" ") if len(seq) > 1 else seq
+    while len(com) > 0:
+        next = com.pop(0)
         next = next[:2]
-    if next == "A1":
-        pass  # gimbal 60 deg right
-    elif next == "B2":
-        pass  # gimbal 60 deg left
-    elif next == "C3":
-        if camera.snapshot():
-            print(camera)
-        else:
-            print(False)
-    elif next == "D4":  # grayscale on
-        camera.lastState[0] = True
-    elif next == "E5":  # grayscale off
-        camera.lastState[0] = False
-    elif next == "F6":  # flip 180 degrees
-        camera.lastState[1] = True if not camera.lastState[1] else False
-    elif next == "G7":  # apply filter
-        camera.lastState[2] = True
-    elif next == "H8":  # remove all filters
-        camera.lastState[0] = False
-        camera.lastState[2] = False
-    elif next == "I9":
-        camera.lastState = [False, False, False]
+        if next == "A1":
+            pass  # gimbal 60 deg right
+        elif next == "B2":
+            pass  # gimbal 60 deg left
+        elif next == "C3":
+            if camera.snapshot():
+                print(camera)
+            else:
+                print(False)
+        elif next == "D4":  # grayscale on
+            camera.lastState[0] = True
+        elif next == "E5":  # grayscale off
+            camera.lastState[0] = False
+        elif next == "F6":  # flip 180 degrees
+            camera.lastState[1] = True if not camera.lastState[1] else False
+        elif next == "G7":  # apply filter
+            camera.lastState[2] = True
+        elif next == "H8":  # remove all filters
+            camera.lastState[0] = False
+            camera.lastState[2] = False
+        elif next == "I9":
+            camera.lastState = [False, False, False]
     camera.release()
 
 
 if __name__ == "__main__":
+    # Setup for connection
     DIRECTORY = "/home/pi/"
     SERVER = "/tmp/uds_socket"
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
-    while True:
-        # Bind server to client
-        try:
-            sock.connect(SERVER)
-        except socket.error:
-            continue
+    # Try to connect
+    try:
+        sock.connect(SERVER)
+    except socket.error:
+        print("Socket error")
 
-        numBytes = 2
+    queue = []
+
+    while True:
+        numBytes = 36
         comm = None
 
         print(f"Connecting to: {SERVER}")
@@ -61,9 +66,14 @@ if __name__ == "__main__":
         n = m.decode("utf-8")
         if n != "":
             comm = n
+        else:
+            continue
         print(comm)
-
-        runCam(comm, DIRECTORY)
+        if comm[:1] == "X":
+            seq = comm.split("XX4XXX ")[1]
+            queue.append(seq)
+        if len(queue) > 0:
+            runCam(queue.pop(0), DIRECTORY)
     sock.close()
 
 

@@ -1,24 +1,25 @@
-# TO RUN: python3 server.py "$(grep "XX4XXX" radio.txt)"
 
 import os
 import socket
 import sys
+import time
 
-CALLSIGN = "XX4XXX "
+import lib.logging as log
 
-# PROCESS INCOMING DATA --------------------------------------|
 
-def process(msg: str) -> list:
+# COMMUNICATION --------------------------------------|
+
+def readSendLoop() -> None:
     """
-    Processes incoming command string.
-    @param string args
-    @return list of commands
+    Continuously read from stdin and send to client.
     """
-    print(msg)
-    for val in msg:
-        seq = val.split(CALLSIGN)
-        comms = seq[1].split(" ") if len(seq) > 1 else seq
-    return comms
+    while True:
+        line = sys.stdin.readline()
+        if not line:
+            continue
+        print("Line:", line)
+        time.sleep(4)
+        client.send(bytes(line, "utf-8"))
 
 
 # CREATE A SERVER --------------------------------------------|
@@ -41,18 +42,10 @@ if __name__ == "__main__":
         try:
             client, client_addy = sock.accept()
             print(f"Connection to {client_addy} established.")
-            line = sys.stdin.readline()
-            if not line:
+            if not client:
                 continue
-            elif line == "XX4XXX exit":
-                break
-            msg = process(line)
-            for val in msg:
-                if val == "X1":
-                    sock.close()
-                    break
-                else:
-                    client.send(bytes(val, "utf-8"))
-        finally:
-            print("Closing connection")
+            readSendLoop()
+        except KeyboardInterrupt:
             sock.close()
+            print("Closing connection")
+    sock.close()
