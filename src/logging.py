@@ -17,7 +17,6 @@ def setup() -> int:
         compile = subprocess.Popen(["g++", "-o", "logger.exe", "logger.cpp"])
         compile.wait()
         return compile.returncode
-    print("Already compiled.")
     return 2
 
 def log_event(event_description: str) -> None:

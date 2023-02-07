@@ -1,8 +1,8 @@
 import socket
-import sys
+import threading
 
-import lib.cam as cam
-import lib.logging as log
+from cam import cam
+import logging as log
 
 
 # EXECUTE CAMERA FUNCTIONS ---------------------------------------|
@@ -25,6 +25,8 @@ def runCam(f: str, dir: str):
         elif next == "C3":
             if camera.snapshot():
                 print(camera)
+                log.log_event(f"Picture Taken: GS: {camera.lastState[0]} "
+                    f"F: {camera.lastState[1]} S: {camera.lastState[2]}")
             else:
                 print(False)
         elif next == "D4":  # grayscale on
@@ -55,8 +57,6 @@ if __name__ == "__main__":
     except socket.error:
         print("Socket error")
 
-    queue = []
-
     while True:
         numBytes = 36
         comm = None
@@ -71,9 +71,8 @@ if __name__ == "__main__":
         print(comm)
         if comm[:1] == "X":
             seq = comm.split("XX4XXX ")[1]
-            queue.append(seq)
-        if len(queue) > 0:
-            runCam(queue.pop(0), DIRECTORY)
+            t = threading.Thread(target=runCam, args=(seq, DIRECTORY))
+            t.start()
     sock.close()
 
 

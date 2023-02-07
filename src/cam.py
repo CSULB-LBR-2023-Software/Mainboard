@@ -1,10 +1,7 @@
 import datetime
-import sys
 
 import cv2
 import numpy as np
-
-sys.path.append("/usr/.local/lib/python3/site-packages")
 
 # Camera class to access OpenCV library for camera "functions"
 # CLASS ----------------------------------------------------------------------|
@@ -127,6 +124,3 @@ class cam:
         s += f"flip - {self.lastState[1]} | sharp - {self.lastState[2]}"
         return s
 
-
-# camer = cam(r"C:\Users\nicol\programs\Rocketry\camTesting")
-# print(camer)
