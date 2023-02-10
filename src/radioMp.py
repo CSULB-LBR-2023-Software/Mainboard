@@ -72,20 +72,22 @@ def readIn(shName: str) -> None:
     """
     queue=ShareableList(name=shName)
     count = 0
-    while queue[19]:  # not reading this as False correctly?
+    while queue[BUFF_L]:  # not reading this as False correctly?
         line = sys.stdin.readline()
         if not line:
             continue
         print("Line in: " + line)
-        queue[count % 18] = line
+        queue[count % BUFF_SL] = line
         count += 1
-        queue[18] = count
+        queue[BUFF_SL] = count
     # does not seem to be able to break out of this while loop.
     print("Read exit.")
 
 
 if __name__ == "__main__":
-
+    BUFFSIZE = 20
+    BUFF_L = BUFFSIZE - 1
+    BUFF_SL = BUFFSIZE - 2
     DIRECTORY = "/home/pi/"
 
     log.setup()
@@ -94,7 +96,7 @@ if __name__ == "__main__":
         # setup shared memory
         smm = SharedMemoryManager()
         smm.start()
-        queue = smm.ShareableList([' ' * 36] * 20)  # allocate sufficient bytes
+        queue = smm.ShareableList([' ' * 36] * BUFFSIZE)  # allocate sufficient bytes
         queue[19] = True  # set continuation index
 
         camP = mp.Process(target=camLoop, args=(queue.shm.name, DIRECTORY))
