@@ -4,6 +4,11 @@ import cv2
 import numpy as np
 
 # Camera class to access OpenCV library for camera "functions"
+
+# CONSTANTS ------------------------------------------------------------------|
+GRAYSCALE = 0
+FLIP = 1
+SHARPEN = 2
 # CLASS ----------------------------------------------------------------------|
 
 
@@ -20,7 +25,8 @@ class cam:
         \n\t - MUST USE R STRING FOR CONSTRUCTOR PARAM "path"
         \n\t - lastState = [grayscale, flip, sharp filter]
         """
-        self.lastState = np.zeros(3, dtype=bool)
+        self.lastState = [False, False, False]
+        print(self.lastState)
         self.cam = cv2.VideoCapture(-1)
         self.img_counter = 0
         self.dir = rf"{path}"
@@ -28,9 +34,10 @@ class cam:
     def snapshot(self) -> bool:
         """
         Takes a photo
+        @return bool: True if photo taken
+
         Radio Commands: C3
         Last State: 0 - grayscale, 1 - Flipped 180 deg, 2 - sharpened filter
-        @return True if photo taken
         """
         ret, frame = self.cam.read()
         if not ret:
@@ -43,22 +50,21 @@ class cam:
         # raw and format string
         path = rf"{self.dir}/{img_name}"  # ADD YOUR PATH HERE
         img = cv2.imread(path)
-        if self.lastState[0]:  # grayscale
+        if self.lastState[GRAYSCALE]:  # grayscale
             img = cam.gScale(img)
-        if self.lastState[1]:  # flipped 180 deg
+        if self.lastState[FLIP]:  # flipped 180 deg
             img = cam.flip(img)
-        if self.lastState[2]:  # sharpened filter
+        if self.lastState[SHARPEN]:  # sharpened filter
             img = cam.sharpF(img)
         cv2.imwrite(img_name, cam.timeStamp(time, img))
-        # print("photo taken, " + self.__str__())
         self.img_counter += 1
         return True
 
     def iD(time: datetime) -> int:
         """
         Returns ID for image naming purposes
-        @param current time
-        @return ID (int)
+        @param time: current time
+        @return int: ID
         """
         return (
             int(time.strftime("%m")) * 10000000
@@ -70,9 +76,9 @@ class cam:
     def timeStamp(time: datetime, img: cv2.Mat) -> cv2.Mat:
         """
         Timestamps and returns an existing image
-        @param current time
-        @param path for image (already read using cv2.imread())
-        @return the edited image
+        @param time: current time
+        @param img: path for image (already read using cv2.imread())
+        @return cv2.Mat: the edited image
         """
         return cv2.putText(
             img,
@@ -88,9 +94,10 @@ class cam:
     def flip(img: cv2.Mat) -> cv2.Mat:
         """
         Flips and returns existing image 180 degrees
+        @param img: path for image (already read using cv2.imread())
+        @return cv2.Mat: the edited image
+
         Radio Commands: F6
-        @param path for image (already read using cv2.imread())
-        @return the edited image
         """
         return cv2.flip(img, 0)
 
@@ -106,9 +113,10 @@ class cam:
     def sharpF(img: cv2.Mat) -> cv2.Mat:
         """
         Adds and returns existing image with 'sharpen' filter applied
+        @param img: path for image (already read using cv2.imread())
+        @return cv2.Mat: the edited image
+
         Radio Commands: G7 - ON, H8 - OFF
-        @param path for image (already read using cv2.imread())
-        @return the edited image
         """
         kernel = np.array([[-1, -1, -1], [-1, 9.5, -1], [-1, -1, -1]])
         return cv2.filter2D(img, -1, kernel)
@@ -116,6 +124,7 @@ class cam:
     def release(self) -> None:
         """
         Releases camera
+        @return None: None
         """
         self.cam.release()
 

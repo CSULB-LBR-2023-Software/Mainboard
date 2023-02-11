@@ -9,7 +9,7 @@ import datetime
 def setup() -> int:
     '''
     Compiles logger if it is not yet compiled.
-    @returns compilation status
+    @return int: compilation status
     '''
     check = subprocess.Popen(["test", "-f", "logger.exe"])
     check.wait()
@@ -22,7 +22,7 @@ def setup() -> int:
 def log_event(event_description: str) -> None:
     '''
     Logs a single message with a timestamp.
-    @param string description message to log
-    @returns none
+    @param event_description: string description message to log
+    @return None: none
     '''
     subprocess.Popen(["./logger.exe", f"{datetime.datetime.now()}, {event_description}"])
