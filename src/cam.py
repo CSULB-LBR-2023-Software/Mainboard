@@ -1,22 +1,25 @@
 import datetime
+from enum import Enum
 
 import cv2
 import numpy as np
 
 # Camera class to access OpenCV library for camera "functions"
-
-# CONSTANTS ------------------------------------------------------------------|
-GRAYSCALE = 0
-FLIP = 1
-SHARPEN = 2
 # CLASS ----------------------------------------------------------------------|
 
 
 class cam:
-
     """
     OpenCV based camera object with picture taking and basic editing abilities
     """
+
+    class state(int, Enum):
+        """
+        Enum to indicate indexes of cam object state tracker.
+        """
+        GRAYSCALE = 0
+        FLIP = 1
+        SHARPEN = 2
 
     def __init__(self, path: str):
         """
@@ -50,11 +53,11 @@ class cam:
         # raw and format string
         path = rf"{self.dir}/{img_name}"  # ADD YOUR PATH HERE
         img = cv2.imread(path)
-        if self.lastState[GRAYSCALE]:  # grayscale
+        if self.lastState[cam.state.GRAYSCALE.value]:  # grayscale
             img = cam.gScale(img)
-        if self.lastState[FLIP]:  # flipped 180 deg
+        if self.lastState[cam.state.FLIP.value]:  # flipped 180 deg
             img = cam.flip(img)
-        if self.lastState[SHARPEN]:  # sharpened filter
+        if self.lastState[cam.state.SHARPEN.value]:  # sharpened filter
             img = cam.sharpF(img)
         cv2.imwrite(img_name, cam.timeStamp(time, img))
         self.img_counter += 1

@@ -1,5 +1,5 @@
 import multiprocessing as mp
-import sys
+from sys import stdin
 from multiprocessing.managers import SharedMemoryManager
 from multiprocessing.shared_memory import ShareableList
 
@@ -13,6 +13,10 @@ BUFF_SL = BUFFSIZE - 2
 
 MAX_MSG_LEN = 29
 CALLSIGN = "XX4XXX"
+
+GRAYSCALE = cam.state.GRAYSCALE.value
+FLIP = cam.state.FLIP.value
+SHARPEN = cam.state.SHARPEN.value
 
 DIRECTORY = "/home/pi/"
 
@@ -38,18 +42,22 @@ def runCam(seq: str, camera: cam) -> tuple:
         elif next == "C3":
             if camera.snapshot():
                 print(camera)
-                log.log_event(f"Picture Taken: {camera.dir}, GS: {camera.lastState[0]} "
-                    f"F: {camera.lastState[1]} S: {camera.lastState[2]}")
+                log.log_event(
+                    f"Picture Taken: {camera.dir}, "
+                    f"GS: {camera.lastState[0]} "
+                    f"F: {camera.lastState[1]} "
+                    f"S: {camera.lastState[2]}"
+                    )
             else:
                 print(False)
         elif next == "D4":  # grayscale on
-            camera.lastState[0] = True
+            camera.lastState[GRAYSCALE] = True
         elif next == "E5":  # grayscale off
-            camera.lastState[0] = False
+            camera.lastState[GRAYSCALE] = False
         elif next == "F6":  # flip 180 degrees
-            camera.lastState[1] = not camera.lastState[1]
+            camera.lastState[FLIP] = not camera.lastState[FLIP]
         elif next == "G7":  # apply filter
-            camera.lastState[2] = True
+            camera.lastState[SHARPEN] = True
         elif next == "H8":  # reset all filters
             camera.lastState = [False, False, False]
     camera.release()
@@ -80,8 +88,8 @@ def readIn(shName: str) -> None:
     """
     queue=ShareableList(name=shName)
     count = 0
-    while queue[BUFF_L]:  # not reading this as False correctly?
-        line = sys.stdin.readline()
+    while queue[BUFF_L]:
+        line = stdin.readline()
         if not line:
             continue
         print("Line in: " + line)
@@ -99,7 +107,6 @@ if __name__ == "__main__":
 
     with SharedMemoryManager() as smm:
         # setup shared memory
-        smm = SharedMemoryManager()
         smm.start()
         # allocate sufficient bytes, set up buffer
         emptyBuff = [' ' * MAX_MSG_LEN] * BUFFSIZE
