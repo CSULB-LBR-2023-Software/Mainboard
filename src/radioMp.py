@@ -11,7 +11,7 @@ BUFFSIZE = 7
 BUFF_L = BUFFSIZE - 1
 BUFF_SL = BUFFSIZE - 2
 
-MAX_MSG_LEN = 29
+MAX_MSG_LEN = 32
 CALLSIGN = "XX4XXX"
 
 GRAYSCALE = cam.state.GRAYSCALE.value
@@ -21,7 +21,7 @@ SHARPEN = cam.state.SHARPEN.value
 DIRECTORY = "/home/pi/"
 
 # FUNCTIONS ---------------------------------------------------|
-def runCam(seq: str, camera: cam) -> tuple:
+def runCam(seq: str, camera: cam) -> bool:
     """
     Runs camera functions based on command sequence
     @param seq: the command sequence
@@ -30,11 +30,10 @@ def runCam(seq: str, camera: cam) -> tuple:
     """
     print("in cam")
     if seq[:4] == "exit":
-        return False, camera
+        return False
     com = seq.split(" ") if len(seq) > 1 else seq
     while len(com) > 0:
-        next = com.pop(0)
-        next = next[:2]
+        next = com.pop(0)[:2]
         if next == "A1":
             pass  # gimbal 60 deg right
         elif next == "B2":
@@ -60,8 +59,7 @@ def runCam(seq: str, camera: cam) -> tuple:
             camera.lastState[SHARPEN] = True
         elif next == "H8":  # reset all filters
             camera.lastState = [False, False, False]
-    camera.release()
-    return True, camera
+    return True
 
 def camLoop(shName: str, dir: str) -> None:
     """
@@ -76,9 +74,10 @@ def camLoop(shName: str, dir: str) -> None:
     camera = cam(dir)
     while cont:
         if count < queue[BUFF_SL]:
-            cont, camera = runCam(queue[count % BUFF_SL], dir, camera)
+            cont = runCam(queue[count % BUFF_SL], camera)
             count += 1
     queue[BUFF_L] = False
+    camera.release()
 
 def readIn(shName: str) -> None:
     """
@@ -93,8 +92,8 @@ def readIn(shName: str) -> None:
         if not line:
             continue
         print("Line in: " + line)
-        if seq[:len(CALLSIGN)] == CALLSIGN:
-            seq = seq.split(f"{CALLSIGN} ")[1]
+        if line[:len(CALLSIGN)] == CALLSIGN:
+            line = line.split(f"{CALLSIGN} ")[1]
             queue[count % BUFF_SL] = line
             count += 1
             queue[BUFF_SL] = count
@@ -103,14 +102,13 @@ def readIn(shName: str) -> None:
 
 if __name__ == "__main__":
 
+    # setup logger
     log.setup()
 
+    # setup shared memory
     with SharedMemoryManager() as smm:
-        # setup shared memory
-        smm.start()
         # allocate sufficient bytes, set up buffer
-        emptyBuff = [' ' * MAX_MSG_LEN] * BUFFSIZE
-        queue = smm.ShareableList([val if i < BUFF_SL else 0 for i, val in enumerate(emptyBuff)])
+        queue = smm.ShareableList([' ' * MAX_MSG_LEN if i < BUFF_SL else 0 for i in range(BUFFSIZE)])
         queue[BUFF_L] = True  # set continuation index
 
         camP = mp.Process(target=camLoop, args=(queue.shm.name, DIRECTORY))

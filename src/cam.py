@@ -29,7 +29,6 @@ class cam:
         \n\t - lastState = [grayscale, flip, sharp filter]
         """
         self.lastState = [False, False, False]
-        print(self.lastState)
         self.cam = cv2.VideoCapture(-1)
         self.img_counter = 0
         self.dir = rf"{path}"
