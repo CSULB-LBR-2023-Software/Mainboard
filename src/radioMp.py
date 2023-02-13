@@ -5,8 +5,8 @@ Description: Multiprocessing program to receive piped commands
 from stdin and execute camera commands in parallel.
 """
 
-from sys import stdin
 from multiprocessing import Process, Queue
+from sys import stdin
 
 import myLogging as log
 from cam import cam
@@ -35,11 +35,13 @@ def read_in(commands: Queue) -> None:
         if not line:
             continue
         print("Line in: " + line)
+        # verify message begins with callsign, then split and remove
         if line[:len(CALLSIGN)] == CALLSIGN:
             line = line.split(f"{CALLSIGN} ")[1]
             if line[:len(EXIT)] == EXIT:
                 commands.put(END)
                 break
+            # insert in queue
             commands.put(line)
     print("Read exit.")
 
@@ -63,9 +65,9 @@ def run_cam(command: str, camera: cam) -> None:
                 print(camera)
                 log.log_event(
                     f"Picture Taken: {camera.dir}, "
-                    f"GS: {camera.lastState[0]} "
-                    f"F: {camera.lastState[1]} "
-                    f"S: {camera.lastState[2]}"
+                    f"GS: {camera.lastState[GRAYSCALE]} "
+                    f"F: {camera.lastState[FLIP]} "
+                    f"S: {camera.lastState[SHARPEN]}"
                     )
             else:
                 print(False)
@@ -89,8 +91,9 @@ def cam_loop(commands: Queue, directory: str) -> None:
     """
     camera = cam(directory)
     while True:
+        # read from queue
         command = commands.get()
-        if not command:
+        if not command:  # exit signal
             break
         run_cam(command, camera)
     camera.release()
@@ -110,10 +113,9 @@ if __name__ == "__main__":
     # start reading from stdin
     read_in(com_queue)
 
-    # join process, wait for completion
+    # wait for camera execution completion
     camera_p.join()
 
     # initialize arm folding
 
-    # mission complete
     print("Mission complete.")
