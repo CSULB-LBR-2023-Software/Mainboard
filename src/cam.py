@@ -25,6 +25,7 @@ class cam:
         """
         OpenCV based personal object for performing camera operations
         with Arducam
+        @param path(str): path of working directory
         \n\t - MUST USE R STRING FOR CONSTRUCTOR PARAM "path"
         \n\t - lastState = [grayscale, flip, sharp filter]
         """
@@ -65,7 +66,7 @@ class cam:
     def iD(time: datetime) -> int:
         """
         Returns ID for image naming purposes
-        @param time: current time
+        @param time(datetime): current time
         @return int: ID
         """
         return (
@@ -78,8 +79,8 @@ class cam:
     def timeStamp(time: datetime, img: cv2.Mat) -> cv2.Mat:
         """
         Timestamps and returns an existing image
-        @param time: current time
-        @param img: path for image (already read using cv2.imread())
+        @param time(datetime): current time
+        @param img(cv2.Mat): path for image (already read using cv2.imread())
         @return cv2.Mat: the edited image
         """
         return cv2.putText(
@@ -96,7 +97,7 @@ class cam:
     def flip(img: cv2.Mat) -> cv2.Mat:
         """
         Flips and returns existing image 180 degrees
-        @param img: path for image (already read using cv2.imread())
+        @param img(cv2.Mat): path for image (already read using cv2.imread())
         @return cv2.Mat: the edited image
 
         Radio Commands: F6
@@ -107,15 +108,15 @@ class cam:
         """
         Converts and returns existing image in grayscale
         Radio Commands: D4 - ON, E5 - OFF
-        @param path for image (already read using cv2.imread())
-        @return the edited image
+        @param img(cv2.Mat): path for image (already read using cv2.imread())
+        @return cv2.Mat: the edited image
         """
         return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     def sharpF(img: cv2.Mat) -> cv2.Mat:
         """
         Adds and returns existing image with 'sharpen' filter applied
-        @param img: path for image (already read using cv2.imread())
+        @param img(cv2.Mat): path for image (already read using cv2.imread())
         @return cv2.Mat: the edited image
 
         Radio Commands: G7 - ON, H8 - OFF

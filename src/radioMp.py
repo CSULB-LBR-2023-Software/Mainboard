@@ -1,18 +1,20 @@
-import multiprocessing as mp
+"""
+Author: Nick Fan
+Date: Feb 2023
+Description: Multiprocessing program to receive piped commands
+from stdin and execute camera commands in parallel.
+"""
+
 from sys import stdin
-from multiprocessing.managers import SharedMemoryManager
-from multiprocessing.shared_memory import ShareableList
+from multiprocessing import Process, Queue
 
 import myLogging as log
 from cam import cam
 
 # CONSTANTS ---------------------------------------------------|
-BUFFSIZE = 7
-BUFF_L = BUFFSIZE - 1
-BUFF_SL = BUFFSIZE - 2
-
-MAX_MSG_LEN = 32
 CALLSIGN = "XX4XXX"
+EXIT = "exit"
+END = None
 
 GRAYSCALE = cam.state.GRAYSCALE.value
 FLIP = cam.state.FLIP.value
@@ -21,19 +23,37 @@ SHARPEN = cam.state.SHARPEN.value
 DIRECTORY = "/home/pi/"
 
 # FUNCTIONS ---------------------------------------------------|
-def runCam(seq: str, camera: cam) -> bool:
+
+def read_in(commands: Queue) -> None:
+    """
+    Continuously reads from stdin.
+    @param commands(Queue): Queue of commands.
+    @return None: None
+    """
+    while True:
+        line = stdin.readline()
+        if not line:
+            continue
+        print("Line in: " + line)
+        if line[:len(CALLSIGN)] == CALLSIGN:
+            line = line.split(f"{CALLSIGN} ")[1]
+            if line[:len(EXIT)] == EXIT:
+                commands.put(END)
+                break
+            commands.put(line)
+    print("Read exit.")
+
+def run_cam(command: str, camera: cam) -> None:
     """
     Runs camera functions based on command sequence
-    @param seq: the command sequence
-    @param camera: cam object
-    @return (bool, cam): (status, camera)
+    @param command(str): the command sequence
+    @param camera(cam): cam object
+    @return None: None
     """
     print("in cam")
-    if seq[:4] == "exit":
-        return False
-    com = seq.split(" ") if len(seq) > 1 else seq
-    while len(com) > 0:
-        next = com.pop(0)[:2]
+    sequence = command.split(" ") if len(command) > 1 else command
+    while len(sequence) > 0:
+        next = sequence.pop(0)[:2]
         if next == "A1":
             pass  # gimbal 60 deg right
         elif next == "B2":
@@ -59,60 +79,38 @@ def runCam(seq: str, camera: cam) -> bool:
             camera.lastState[SHARPEN] = True
         elif next == "H8":  # reset all filters
             camera.lastState = [False, False, False]
-    return True
 
-def camLoop(shName: str, dir: str) -> None:
+def cam_loop(commands: Queue, directory: str) -> None:
     """
     Continuosly loops and runs camera until exit signal is read.
-    @param shName: SharedMemory name for queue
-    @param dir: directory for camera to work in
+    @param commands(Queue): Queue of commands.
+    @param dir(str): directory for camera to work in
     @return None: None
     """
-    queue = ShareableList(name=shName)
-    cont = True
-    count = 0
-    camera = cam(dir)
-    while cont:
-        if count < queue[BUFF_SL]:
-            cont = runCam(queue[count % BUFF_SL], camera)
-            count += 1
-    queue[BUFF_L] = False
+    camera = cam(directory)
+    while True:
+        command = commands.get()
+        if not command:
+            break
+        run_cam(command, camera)
     camera.release()
-
-def readIn(shName: str) -> None:
-    """
-    Continuously reads from stdin.
-    @param shName: SharedMemory name for queue
-    @return None: None
-    """
-    queue=ShareableList(name=shName)
-    count = 0
-    while queue[BUFF_L]:
-        line = stdin.readline()
-        if not line:
-            continue
-        print("Line in: " + line)
-        if line[:len(CALLSIGN)] == CALLSIGN:
-            line = line.split(f"{CALLSIGN} ")[1]
-            queue[count % BUFF_SL] = line
-            count += 1
-            queue[BUFF_SL] = count
-    print("Read exit.")
-
+    print("Camera exit.")
 
 if __name__ == "__main__":
+    # create shared queue for commands
+    com_queue = Queue()
 
-    # setup logger
-    log.setup()
+    # start camera process
+    camera_p = Process(target=cam_loop, args=(com_queue, DIRECTORY))
+    camera_p.start()
 
-    # setup shared memory
-    with SharedMemoryManager() as smm:
-        # allocate sufficient bytes, set up buffer
-        queue = smm.ShareableList([' ' * MAX_MSG_LEN if i < BUFF_SL else 0 for i in range(BUFFSIZE)])
-        queue[BUFF_L] = True  # set continuation index
+    # start reading from stdin
+    read_in(com_queue)
 
-        camP = mp.Process(target=camLoop, args=(queue.shm.name, DIRECTORY))
-        camP.start()
+    # join process, wait for completion
+    camera_p.join()
 
-        # continuously read in
-        readIn(queue.shm.name)
+    # initialize arm folding
+
+    # mission complete
+    print("Mission complete.")
