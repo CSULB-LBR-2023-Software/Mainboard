@@ -97,6 +97,9 @@ def cam_loop(commands: Queue, directory: str) -> None:
     print("Camera exit.")
 
 if __name__ == "__main__":
+    # setup logger
+    log.setup()
+
     # create shared queue for commands
     com_queue = Queue()
 
