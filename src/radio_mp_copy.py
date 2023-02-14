@@ -64,7 +64,9 @@ def select(order: str, case: dict, camera: cam) -> None:
     @param camera(cam): camera to operate with
     @return None: None
     """
-    log.log_event(case.get(order)(camera))
+    ret = case.get(order)(camera)
+    if ret:
+        log.log_event(ret)
 
 def cam_loop(commands: Queue, directory: str) -> None:
     """
@@ -80,7 +82,10 @@ def cam_loop(commands: Queue, directory: str) -> None:
         if not command:  # exit signal
             break
         for order in command.split(" "):
-            select(order, camera)
+            try:
+                select(order[:2], case, camera)
+            except TypeError:
+                continue
     camera.release()
     print("Camera exit.")
 

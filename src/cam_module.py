@@ -8,12 +8,12 @@ import numpy as np
 # CLASS ----------------------------------------------------------------------|
 
 class state(int, Enum):
-        """
-        Enum to indicate indexes of cam object state tracker.
-        """
-        GRAYSCALE = 0
-        FLIP = 1
-        SHARPEN = 2
+    """
+    Enum to indicate indexes of cam object state tracker.
+    """
+    GRAYSCALE = 0
+    FLIP = 1
+    SHARPEN = 2
 
 class cam:
     """
