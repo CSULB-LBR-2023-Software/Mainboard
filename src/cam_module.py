@@ -1,3 +1,10 @@
+"""
+Author: Nick Fan
+Date: Dec 2022 - Feb 2023
+Description: Camera object and functions module tailored to
+completion of Payload Mission for NASA USLI with Long Beach Rocketry.
+"""
+
 import datetime
 from enum import Enum
 
@@ -144,11 +151,14 @@ class cam:
 
 
 # ADDITIONAL FUNCTIONS -------------------------------------------------------|
+# Used for hashing individual commands to functions 
 def gimbal_right(camera: cam) -> str:
     """
     Rotates gimbal 60 degrees right.
     @param camera(cam): camera to operate with.
     @param str: Summary of action.
+
+    Not yet fully implemented.
     """
     print("gimb right")
     camera.rotation += 60
@@ -160,6 +170,8 @@ def gimbal_left(camera: cam) -> None:
     Rotates gimbal 60 degrees left.
     @param camera(cam): camera to operate with.
     @param str: Summary of action.
+
+    Not yet fully implemented.
     """
     print("gimb left")
     camera.rotation -= 60

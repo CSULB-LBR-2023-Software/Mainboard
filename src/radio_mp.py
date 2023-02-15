@@ -3,24 +3,34 @@ Author: Nick Fan
 Date: Feb 2023
 Description: Multiprocessing program to receive piped commands
 from stdin and execute camera commands in parallel.
+** V2: implements dictionary to hash string commands to functions.
 """
 
 from multiprocessing import Process, Queue
 from sys import stdin
 
 import my_logging as log
-from cam_module import cam, state
+import cam_module
+from cam_module import cam
 
 # CONSTANTS ---------------------------------------------------|
 CALLSIGN = "XX4XXX"
 EXIT = "exit"
 END = None
 
-GRAYSCALE = state.GRAYSCALE.value
-FLIP = state.FLIP.value
-SHARPEN = state.SHARPEN.value
-
 DIRECTORY = "/home/pi/"
+
+# CAMERA DICT -------------------------------------------------|
+CASE = {
+    "A1": cam_module.gimbal_right,
+    "B2": cam_module.gimbal_left,
+    "C3": cam_module.take_pic,
+    "D4": cam_module.gscale_on,
+    "E5": cam_module.gscale_off,
+    "F6": cam_module.flip180,
+    "G7": cam_module.sharpen,
+    "H8": cam_module.reset_filters
+}
 
 # FUNCTIONS ---------------------------------------------------|
 
@@ -45,42 +55,18 @@ def read_in(commands: Queue) -> None:
             commands.put(line)
     print("Read exit.")
 
-def run_cam(command: str, camera: cam) -> None:
+def select(order: str, case: dict, camera: cam) -> None:
     """
-    Runs camera functions based on command sequence
-    @param command(str): the command sequence
-    @param camera(cam): cam object
+    Selects and executes respective function based
+    on next order in sequence.
+    @param order(str): next order in sequence
+    @param case(dict): dictionary mapping orders to functions
+    @param camera(cam): camera to operate with
     @return None: None
     """
-    print("in cam")
-    sequence = command.split(" ") if len(command) > 1 else command
-    while len(sequence) > 0:
-        next = sequence.pop(0)[:2]
-        if next == "A1":
-            pass  # gimbal 60 deg right
-        elif next == "B2":
-            pass  # gimbal 60 deg left
-        elif next == "C3":
-            if camera.snapshot():
-                print(camera)
-                log.log_event(
-                    f"Picture Taken: {camera.dir}, "
-                    f"GS: {camera.lastState[GRAYSCALE]} "
-                    f"F: {camera.lastState[FLIP]} "
-                    f"S: {camera.lastState[SHARPEN]}"
-                    )
-            else:
-                print(False)
-        elif next == "D4":  # grayscale on
-            camera.lastState[GRAYSCALE] = True
-        elif next == "E5":  # grayscale off
-            camera.lastState[GRAYSCALE] = False
-        elif next == "F6":  # flip 180 degrees
-            camera.lastState[FLIP] = not camera.lastState[FLIP]
-        elif next == "G7":  # apply filter
-            camera.lastState[SHARPEN] = True
-        elif next == "H8":  # reset all filters
-            camera.lastState = [False, False, False]
+    ret = case.get(order)(camera)
+    if ret:
+        log.log_event(ret)
 
 def cam_loop(commands: Queue, directory: str) -> None:
     """
@@ -95,9 +81,14 @@ def cam_loop(commands: Queue, directory: str) -> None:
         command = commands.get()
         if not command:  # exit signal
             break
-        run_cam(command, camera)
+        for order in command.split(" "):
+            try:
+                select(order[:2], CASE, camera)
+            except TypeError:
+                continue
     camera.release()
     print("Camera exit.")
+
 
 if __name__ == "__main__":
     # setup logger

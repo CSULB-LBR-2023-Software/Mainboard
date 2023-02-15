@@ -1,3 +1,9 @@
+/*
+ * Author: Nick Fan
+ * Date: Feb 2023
+ * Description: Logs command line arguments to a csv file.
+*/
+
 #include <fstream>
 
 std::fstream fout;
