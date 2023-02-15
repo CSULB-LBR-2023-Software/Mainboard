@@ -2,8 +2,9 @@
 Author: Nick Fan
 Date: Feb 2023
 Description: Multiprocessing program to receive piped commands
-from stdin and execute camera commands in parallel.
-** V2: implements dictionary to hash string commands to functions.
+from stdin and execute camera commands in parallel. 
+Designed for completion of Payload Mission for NASA USLI 
+with Long Beach Rocketry.
 """
 
 from multiprocessing import Process, Queue
