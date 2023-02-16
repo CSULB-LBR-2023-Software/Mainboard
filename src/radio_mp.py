@@ -1,17 +1,20 @@
+#! /usr/bin/env python3
+
 """
 Author: Nick Fan
 Date: Feb 2023
 Description: Multiprocessing program to receive piped commands
-from stdin and execute camera commands in parallel. 
-Designed for completion of Payload Mission for NASA USLI 
+from stdin and execute camera commands in parallel.
+Designed for completion of Payload Mission for NASA USLI
 with Long Beach Rocketry.
 """
 
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, freeze_support
+from queue import Empty
 from sys import stdin
 
-import my_logging as log
 import cam_module
+import my_logging as log
 from cam_module import cam
 
 # CONSTANTS ---------------------------------------------------|
@@ -30,10 +33,11 @@ CASE = {
     "E5": cam_module.gscale_off,
     "F6": cam_module.flip180,
     "G7": cam_module.sharpen,
-    "H8": cam_module.reset_filters
+    "H8": cam_module.reset_filters,
 }
 
 # FUNCTIONS ---------------------------------------------------|
+
 
 def read_in(commands: Queue) -> None:
     """
@@ -47,14 +51,15 @@ def read_in(commands: Queue) -> None:
             continue
         print("Line in: " + line)
         # verify message begins with callsign, then split and remove
-        if line[:len(CALLSIGN)] == CALLSIGN:
+        if line[: len(CALLSIGN)] == CALLSIGN:
             line = line.split(f"{CALLSIGN} ")[1]
-            if line[:len(EXIT)] == EXIT:
+            if line[: len(EXIT)] == EXIT:
                 commands.put(END)
                 break
             # insert in queue
             commands.put(line)
     print("Read exit.")
+
 
 def select(order: str, case: dict, camera: cam) -> None:
     """
@@ -68,6 +73,7 @@ def select(order: str, case: dict, camera: cam) -> None:
     ret = case.get(order)(camera)
     if ret:
         log.log_event(ret)
+
 
 def cam_loop(commands: Queue, directory: str) -> None:
     """
@@ -91,7 +97,25 @@ def cam_loop(commands: Queue, directory: str) -> None:
     print("Camera exit.")
 
 
+def close_queue(commands: Queue) -> None:
+    """
+    Cleans up and closes queue.
+    @param commands(Queue): Queue of commands.
+    @return None: None
+    """
+    while True:
+        try:
+            commands.get(block=False)
+        except Empty:
+            break
+    commands.close()
+    commands.join_thread()
+    print("Queue closed.")
+
+
 if __name__ == "__main__":
+    freeze_support()
+
     # setup logger
     log.setup()
 
@@ -105,8 +129,9 @@ if __name__ == "__main__":
     # start reading from stdin
     read_in(com_queue)
 
-    # wait for camera execution completion
+    # wait for and clean up resources
     camera_p.join()
+    close_queue(com_queue)
 
     # initialize arm folding
 
