@@ -37,8 +37,6 @@ CASE = {
 }
 
 # FUNCTIONS ---------------------------------------------------|
-
-
 def read_in(commands: Queue) -> None:
     """
     Continuously reads from stdin.
@@ -122,11 +120,9 @@ if __name__ == "__main__":
     # create shared queue for commands
     com_queue = Queue()
 
-    # start camera process
+    # start camera process and reading from stdin
     camera_p = Process(target=cam_loop, args=(com_queue, DIRECTORY))
     camera_p.start()
-
-    # start reading from stdin
     read_in(com_queue)
 
     # wait for and clean up resources
