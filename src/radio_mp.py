@@ -12,10 +12,11 @@ with Long Beach Rocketry.
 from multiprocessing import Process, Queue, freeze_support
 from queue import Empty
 from sys import stdin
+from threading import Timer
 
 import cam_module
 import my_logging as log
-from cam_module import cam
+from cam_module import Cam
 
 # CONSTANTS ---------------------------------------------------|
 CALLSIGN = "XX4XXX"
@@ -43,8 +44,9 @@ def read_in(commands: Queue) -> None:
     @param commands(Queue): Queue of commands.
     @return None: None
     """
+    std_in = open(0)
     while True:
-        line = stdin.readline()
+        line = std_in.readline()
         if not line:
             continue
         print("Line in: " + line)
@@ -59,7 +61,7 @@ def read_in(commands: Queue) -> None:
     print("Read exit.")
 
 
-def select(order: str, case: dict, camera: cam) -> None:
+def select(order: str, case: dict, camera: Cam) -> None:
     """
     Selects and executes respective function based
     on next order in sequence.
@@ -80,7 +82,7 @@ def cam_loop(commands: Queue, directory: str) -> None:
     @param dir(str): directory for camera to work in
     @return None: None
     """
-    camera = cam(directory)
+    camera = Cam(directory)
     while True:
         # read from queue
         command = commands.get()
@@ -111,6 +113,17 @@ def close_queue(commands: Queue) -> None:
     print("Queue closed.")
 
 
+def timeout(commands: Queue, read: Process) -> None:
+    """Testing purposes only. @Jojo"""
+    MISSION = "C3 D4 F6 G7 C3 E5 F6 H8 D4 C3"
+    WAIT = 5 # change this to 300 (5 min) or whatever 
+    def put():
+        commands.put(f"{MISSION}")
+        commands.put(END)
+        read.terminate()
+    Timer(WAIT, put).start()
+
+
 if __name__ == "__main__":
     freeze_support()
 
@@ -123,10 +136,13 @@ if __name__ == "__main__":
     # start camera process and reading from stdin
     camera_p = Process(target=cam_loop, args=(com_queue, DIRECTORY))
     camera_p.start()
-    read_in(com_queue)
+    read_p = Process(target=read_in, args=(com_queue,))
+    read_p.start()
+    timeout(com_queue, read_p)
 
     # wait for and clean up resources
     camera_p.join()
+    read_p.join()
     close_queue(com_queue)
 
     # initialize arm folding
