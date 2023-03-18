@@ -10,13 +10,15 @@ bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 
 class sensor:
     def integration(self, data):
+        pass
 
 class IMU(sensor):
     def __init__(self, imu):
         self.imu = imu
     
+    @property
     def acceleration(self):
-        return self.imu.acceleration    
+        return "test"   
 
 imu = IMU(bno)
 
