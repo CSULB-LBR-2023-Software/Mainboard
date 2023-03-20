@@ -9,16 +9,45 @@ bno = adafruit_bno055.BNO055_I2C(i2c)
 bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 
 class sensor:
-    def integration(self, data):
+    
+	@property
+	def integrate(self, data):
+		pass
+	
+	@property
+	def differentiate(self, data):
+		pass
+
+class Alt(sensor):
+	def __init__(self, imu, groundAlt, apogee):
+		self.alt = alt
+		self.groundAlt = groundAlt
+		self.apogee = apogee
+	
+	@property
+	def altitude(self, samples):
+		return self.alt.altitude
+
+	@property
+	def velocity(self, samples):
+		pass
 
 class IMU(sensor):
-    def __init__(self, imu):
-        self.imu = imu
-    
-    def acceleration(self):
+    def __init__(self, imu, launchVelocity):
+        self.imu = imu  
+		self.launchVelocity = launchVelocity
+ 
+	@property 
+    def acceleration(self, samples) -> tuple[float, float, float]:
         return self.imu.acceleration    
 
+	@property	
+	def velocity(self, samples) -> tuple[float, float, float]:
+		pass
+
+	
 imu = IMU(bno)
+alt = Alt(bmp)
 
 while True:
     '''
