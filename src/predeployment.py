@@ -20,7 +20,7 @@ class sensor:
 		pass
 
 class Alt(sensor):
-	def __init__(self, imu, groundAlt: float, apogee: float):
+	def __init__(self, imu, groundAlt: float, apogee: float) -> None:
 		self.alt = alt
 		self.groundAlt = groundAlt
 		self.apogee = apogee
@@ -31,7 +31,13 @@ class Alt(sensor):
 
 	@property #averaged differentiation of altitude -> velocity
 	def velocity(self, samples: int) -> float:
-		pass
+		data = []
+		
+		for x in range(samples):
+			data.append(self.alt.altitude)
+		
+		return differentiate(data)		
+
 
 class IMU(sensor):
 	def __init__(self, imu, launchVelocity: float) -> None:
@@ -44,7 +50,13 @@ class IMU(sensor):
 
 	@property #averaged integration of acceleration -> velocity
 	def velocity(self, samples: int) -> tuple[float, float, float]:
-		pass
+		data = []
+
+		for x in range(samples):
+			data.append(self.imu.acceleration)
+
+		return integrate(data) 	
+
 
 	
 imu = IMU(bno)
