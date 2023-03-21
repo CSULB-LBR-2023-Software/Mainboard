@@ -11,11 +11,11 @@ bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 class sensor:
     
 	@property #return integral 
-	def integrate(self, data: list[float]) -> float:
+	def integrate(self, data: any) -> any:
 		pass
 	
 	@property #return averaged derivative
-	def differentiate(self, data: list[float]) -> float:
+	def differentiate(self, data: any) -> any:
 		pass
 
 class Alt(sensor):
