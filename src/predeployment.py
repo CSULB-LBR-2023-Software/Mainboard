@@ -1,8 +1,11 @@
 import time
 import board
+
 from adafruit_extended_bus import ExtendedI2C as I2C
 import adafruit_bno055
 import adafruit_bmp3xx
+
+import numpy as np
 
 SENSOR_I2C_BUS = 5 #using I2C bus 5
 
@@ -11,13 +14,21 @@ bno = adafruit_bno055.BNO055_I2C(i2c)
 bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 
 class sensor:
-	@property #return integral 
+	#return integral 
 	def integrate(self, data: list[any]) -> any:
 		pass
 	
-	@property #return averaged derivative
+	#return averaged derivative
 	def differentiate(self, data: list[any]) -> any:
 		pass
+		
+	def sample(self, function: any, samples: int) -> list[float]:
+		data = []
+
+		for x in range(samples):
+			data.append(function)
+
+		return data
 
 class Alt(sensor):
 	def __init__(self, imu, groundAlt: float, apogee: float) -> None:
@@ -25,18 +36,18 @@ class Alt(sensor):
 		self.groundAlt = groundAlt
 		self.apogee = apogee
 	
-	@property #averaged altitude from sensor
+	#averaged altitude from sensor
 	def altitude(self, samples: int) -> float:
-		return self.alt.altitude
+		altitude = self.sample(self.alt.altitude, samples)
+		averageAlt = np.average(altitude)
+		return averageAlt		
 
-	@property #averaged differentiation of altitude -> velocity
+	#averaged differentiation of altitude -> velocity
 	def velocity(self, samples: int) -> float:
-		data = []
-		
-		for x in range(samples):
-			data.append(self.alt.altitude)
-		
-		return differentiate(data)		
+		altitude = self.sample(self.alt.altitude, samples)
+		velocity = self.differentiate(altitude)
+		average = np.average(velocity)
+		return averageVelocity	
 
 
 class IMU(sensor):
@@ -44,18 +55,17 @@ class IMU(sensor):
 		self.imu = imu  
 		self.launchVelocity = launchVelocity
  
-	@property #averaged acceleration
+	#averaged acceleration
 	def acceleration(self, samples: int) -> tuple[float, float, float]:
-		return self.imu.acceleration    
+		accel = self.sample(self.imu.acceleration, samples)
+		averageAccel = np.average(accel)
+		return averageAccel
 
-	@property #averaged integration of acceleration -> velocity
+	#integration of acceleration -> velocity
 	def velocity(self, samples: int) -> tuple[float, float, float]:
-		data = []
-
-		for x in range(samples):
-			data.append(self.imu.acceleration)
-
-		return integrate(data) 	
+		accel = self.sample(self.imu.acceleration, samples)	
+		velocity = integrate(accel)
+		return velocity
 
 
 	
