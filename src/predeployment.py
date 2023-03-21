@@ -11,11 +11,11 @@ bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 class sensor:
     
 	@property #return integral 
-	def integrate(self, data: any) -> any:
+	def integrate(self, data: list[any]) -> any:
 		pass
 	
 	@property #return averaged derivative
-	def differentiate(self, data: any) -> any:
+	def differentiate(self, data: list[any]) -> any:
 		pass
 
 class Alt(sensor):
@@ -33,13 +33,13 @@ class Alt(sensor):
 		pass
 
 class IMU(sensor):
-    def __init__(self, imu, launchVelocity: float) -> None:
-        self.imu = imu  
+	def __init__(self, imu, launchVelocity: float) -> None:
+		self.imu = imu  
 		self.launchVelocity = launchVelocity
  
 	@property #averaged acceleration
-    def acceleration(self, samples: int) -> tuple[float, float, float]:
-        return self.imu.acceleration    
+	def acceleration(self, samples: int) -> tuple[float, float, float]:
+		return self.imu.acceleration    
 
 	@property #averaged integration of acceleration -> velocity
 	def velocity(self, samples: int) -> tuple[float, float, float]:
