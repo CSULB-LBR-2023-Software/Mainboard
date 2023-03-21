@@ -4,12 +4,13 @@ from adafruit_extended_bus import ExtendedI2C as I2C
 import adafruit_bno055
 import adafruit_bmp3xx
 
-i2c = I2C(5)  # uses board.SCL and board.SDA
+SENSOR_I2C_BUS = 5 #using I2C bus 5
+
+i2c = I2C(SENSOR_I2C_BUS)  
 bno = adafruit_bno055.BNO055_I2C(i2c)
 bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 
 class sensor:
-    
 	@property #return integral 
 	def integrate(self, data: list[any]) -> any:
 		pass
