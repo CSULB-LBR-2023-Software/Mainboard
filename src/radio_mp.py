@@ -19,7 +19,7 @@ import my_logging as log
 from cam_module import Cam
 
 # CONSTANTS ---------------------------------------------------|
-CALLSIGN = "XX4XXX"
+CALLSIGN = "KN6WUV"
 EXIT = "exit"
 END = None
 
