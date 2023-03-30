@@ -143,6 +143,7 @@ if __name__ == "__main__":
     # wait for and clean up resources
     camera_p.join()
     read_p.join()
+
     close_queue(com_queue)
 
     # initialize arm folding

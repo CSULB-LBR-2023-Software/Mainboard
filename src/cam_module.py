@@ -15,6 +15,7 @@ import numpy as np
 # CLASS ----------------------------------------------------------------------|
 
 class State(int, Enum):
+
     """
     Enum to indicate indexes of cam object state tracker.
     """
@@ -23,6 +24,7 @@ class State(int, Enum):
     SHARPEN = 2
 
 class Cam:
+
     """
     OpenCV based camera object with picture taking and basic editing abilities
     """
