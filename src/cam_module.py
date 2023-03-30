@@ -14,7 +14,8 @@ import numpy as np
 # Camera class to access OpenCV library for camera "functions"
 # CLASS ----------------------------------------------------------------------|
 
-class state(int, Enum):
+class State(int, Enum):
+
     """
     Enum to indicate indexes of cam object state tracker.
     """
@@ -22,7 +23,8 @@ class state(int, Enum):
     FLIP = 1
     SHARPEN = 2
 
-class cam:
+class Cam:
+
     """
     OpenCV based camera object with picture taking and basic editing abilities
     """
@@ -54,19 +56,19 @@ class cam:
             print("failed to grab frame")
             return False
         time = datetime.datetime.now()
-        img_name = f"arducam_{cam.iD(time) + self.img_counter}.png"
+        img_name = f"arducam_{Cam.iD(time) + self.img_counter}.png"
         print(img_name)
         cv2.imwrite(img_name, frame)
         # raw and format string
         path = rf"{self.dir}/{img_name}"  # ADD YOUR PATH HERE
         img = cv2.imread(path)
-        if self.lastState[state.GRAYSCALE.value]:  # grayscale
-            img = cam.g_scale(img)
-        if self.lastState[state.FLIP.value]:  # flipped 180 deg
-            img = cam.flip(img)
-        if self.lastState[state.SHARPEN.value]:  # sharpened filter
-            img = cam.sharp_f(img)
-        cv2.imwrite(img_name, cam.timestamp(time, img))
+        if self.lastState[State.GRAYSCALE.value]:  # grayscale
+            img = Cam.g_scale(img)
+        if self.lastState[State.FLIP.value]:  # flipped 180 deg
+            img = Cam.flip(img)
+        if self.lastState[State.SHARPEN.value]:  # sharpened filter
+            img = Cam.sharp_f(img)
+        cv2.imwrite(img_name, Cam.timestamp(time, img))
         self.img_counter += 1
         return True
 
@@ -152,7 +154,7 @@ class cam:
 
 # ADDITIONAL FUNCTIONS -------------------------------------------------------|
 # Used for hashing individual commands to functions 
-def gimbal_right(camera: cam) -> str:
+def gimbal_right(camera: Cam) -> str:
     """
     Rotates gimbal 60 degrees right.
     @param camera(cam): camera to operate with.
@@ -165,7 +167,7 @@ def gimbal_right(camera: cam) -> str:
     pass
     return "Gimbal rotated 60 degrees right."
 
-def gimbal_left(camera: cam) -> None:
+def gimbal_left(camera: Cam) -> None:
     """
     Rotates gimbal 60 degrees left.
     @param camera(cam): camera to operate with.
@@ -178,7 +180,7 @@ def gimbal_left(camera: cam) -> None:
     pass
     return "Gimbal rotated 60 degrees left."
 
-def take_pic(camera: cam) -> str:
+def take_pic(camera: Cam) -> str:
     """
     Takes picture and logs picture.
     @param camera(cam): camera to operate with.
@@ -189,48 +191,48 @@ def take_pic(camera: cam) -> str:
     else:
         print(False)
         return "Snapshot failed."
-    ret = f"Picture Taken: {camera.dir}, GS: {camera.lastState[state.GRAYSCALE]}, "
-    ret += f"F: {camera.lastState[state.FLIP]}, S: {camera.lastState[state.SHARPEN]}, "
+    ret = f"Picture Taken: {camera.dir}, GS: {camera.lastState[State.GRAYSCALE]}, "
+    ret += f"F: {camera.lastState[State.FLIP]}, S: {camera.lastState[State.SHARPEN]}, "
     ret += f"R: {camera.rotation}"
     return ret
 
-def gscale_on(camera: cam) -> str:
+def gscale_on(camera: Cam) -> str:
     """
     Turns grayscale filter on.
     @param camera(cam): camera to operate with.
     @param str: Summary of action.
     """
-    camera.lastState[state.GRAYSCALE] = True
+    camera.lastState[State.GRAYSCALE] = True
     return "Grayscale filter activated."
 
-def gscale_off(camera: cam) -> str:
+def gscale_off(camera: Cam) -> str:
     """
     Turns grayscale filter off.
     @param camera(cam): camera to operate with.
     @param str: Summary of action.
     """
-    camera.lastState[state.GRAYSCALE] = False
+    camera.lastState[State.GRAYSCALE] = False
     return "Grayscale filter deactivated."
 
-def flip180(camera: cam) -> str:
+def flip180(camera: Cam) -> str:
     """
     Flips camera view 180 degrees.
     @param camera(cam): camera to operate with.
     @param str: Summary of action.
     """
-    camera.lastState[state.FLIP] = not camera.lastState[state.FLIP]
+    camera.lastState[State.FLIP] = not camera.lastState[State.FLIP]
     return "Camera view flipped 180 degrees."
 
-def sharpen(camera: cam) -> str:
+def sharpen(camera: Cam) -> str:
     """
     Turns sharpen filter on.
     @param camera(cam): camera to operate with.
     @param str: Summary of action.
     """
-    camera.lastState[state.SHARPEN] = True
+    camera.lastState[State.SHARPEN] = True
     return "Sharpen filter activated."
 
-def reset_filters(camera: cam) -> str:
+def reset_filters(camera: Cam) -> str:
     """
     Removes all filters.
     @param camera(cam): camera to operate with.

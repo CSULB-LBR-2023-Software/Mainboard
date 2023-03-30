@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Author: Nick Fan
+# Date: 3/29/2023
+
 radio=false
 debug=false
 showUsage=false
