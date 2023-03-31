@@ -1,9 +1,9 @@
 {
-    "CurrentState": "Deployment",
-    "Deployment": {
-        "Dirtbrake": false,
-        "Bay": false,
-        "Arm": false,
-        "Gimbal": true
+    "CurrentState": "Predeployment",
+    "Predeployment": {
+        "Rail": true,
+        "Ascent": false,
+        "Descent": false,
+        "Land": false
     }
 }
