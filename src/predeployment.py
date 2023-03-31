@@ -89,6 +89,14 @@ def vector_mag(vector: np.ndarray) -> int:
     return sqrt(sum(pow(val, 2) for val in vector))
 
 def majority_bool(*bool_args: bool) -> bool:
+    """Checks whether bool arguments are majority True.
+
+    Args:
+        *bool_args(bool): var args for any number of bool values
+    
+    Returns:
+        bool: True if majority of parameters are True, otherwise False
+    """
     bools = (x for x in bool_args)
     return bools.count(True) > (len(bools) / 2)
 
