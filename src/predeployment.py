@@ -97,7 +97,7 @@ def majority_bool(*bool_args: bool) -> bool:
     Returns:
         bool: True if majority of parameters are True, otherwise False
     """
-    bools = (x for x in bool_args)
+    bools = [x for x in bool_args]
     return bools.count(True) > (len(bools) / 2)
 
 if __name__ == "__main__":
