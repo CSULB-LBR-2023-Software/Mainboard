@@ -1,0 +1,9 @@
+{
+    "CurrentState": "Deployment",
+    "Deployment": {
+        "Dirtbrake": false,
+        "Bay": false,
+        "Arm": false,
+        "Gimbal": true
+    }
+}
