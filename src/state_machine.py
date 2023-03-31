@@ -11,6 +11,7 @@ class States:
 
     class Substates:
         
+        RAIL = "Rail"
         LAUNCH = "Launch"
         LAND = "Land"
 
@@ -28,6 +29,7 @@ class States:
     MISSION = "Mission"
 
     PREDEPLOYMENT_SUBS = {
+        Substates.RAIL: True,
         Substates.LAUNCH: False,
         Substates.LAND: False,
     }
