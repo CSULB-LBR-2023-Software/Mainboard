@@ -8,6 +8,7 @@ import sys
 import time 
 
 from adafruit_extended_bus import ExtendedI2C as I2C
+from math import pow, sqrt
 from state_machine import States, StateMachine
 
 
@@ -77,13 +78,21 @@ def setup(bus: int, ground: int = None) -> tuple:
     if not ground:
         ground = bmp.altitude
     baro = BARO(bmp, ground)
-    return imu, baro 
+    return imu, baro
+
+def vector_mag(vector: np.ndarray) -> int:
+    """Returns the vector magnitude of an array of values.
+
+    Args:
+        vector(np.ndarray): the vector to take the magnitude of
+    """
+    return sqrt(sum(pow(val, 2) for val in vector))
 
 if __name__ == "__main__":
     # state machine setup
     states = StateMachine(PATH)
     states.setNewState(States.PREDEPLOYMENT, States.PREDEPLOYMENT_SUBS)
-    print(f"State: {states.getState()} | Substate: {states.getSubstate}")
+    print(f"State: {states.getState()} | Substate: {states.getSubstate()}")
     print(states)
     
     # sensor setup
@@ -92,15 +101,15 @@ if __name__ == "__main__":
     # launch check
     acc = imu.linear_accel(100)
     alt = baro.altitude(100)
-    while not acc[2] > 35 and not alt > 100:
-        print(f"Linear Acc: {acc} | Alt: {alt}")
+    while not vector_mag(acc) > 35 and not alt > 100:
+        print(f"Linear Acc: {vector_mag(acc)} | Alt: {alt}")
         acc = imu.linear_accel(100)
         alt = baro.altitude(100)
     states.updateState(States.PREDEPLOYMENT, "Launch", True)
     
     # land check  
-    while not acc[2] < 2 and not alt > 20:
-        print(f"Linear Acc: {acc} | Alt: {alt}")
+    while not vector_mag(acc) < 2 and not alt > 20:
+        print(f"Linear Acc: {vector_mag(acc)} | Alt: {alt}")
         acc = imu.linear_accel(100)
         alt = baro.altitude(100)
     states.updateState(States.PREDEPLOYMENT, "Land", True)
