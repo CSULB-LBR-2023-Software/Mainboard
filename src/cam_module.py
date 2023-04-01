@@ -7,9 +7,16 @@ completion of Payload Mission for NASA USLI with Long Beach Rocketry.
 
 import datetime
 from enum import Enum
+import time
 
 import cv2
 import numpy as np
+import RPi.GPIO as GPIO
+
+# CONSTANTS
+RIGHT_PIN = 17
+LEFT_PIN = 18
+GIMBAL_DELAY = 10
 
 # Camera class to access OpenCV library for camera "functions"
 # CLASS ----------------------------------------------------------------------|
@@ -42,6 +49,19 @@ class Cam:
         self.img_counter = 0
         self.rotation = 0
         self.dir = rf"{path}"
+        self.right_pin = RIGHT_PIN
+        self.left_pin = LEFT_PIN
+        self.setup_pins(self.right_pin, self.left_pin)
+    
+    def setup_pins(self, *pins: int) -> None:
+        """
+        Sets up GPIO pins
+        @param pins(int): var args for pins to init as output
+        """
+        GPIO.setmode(GPIO.BCM)
+        for pin in pins:
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, GPIO.LOW)
 
     def snapshot(self) -> bool:
         """
@@ -164,7 +184,9 @@ def gimbal_right(camera: Cam) -> str:
     """
     print("gimb right")
     camera.rotation += 60
-    pass
+    GPIO.output(camera.right_pin, GPIO.HIGH)
+    time.sleep(GIMBAL_DELAY)
+    GPIO.output(camera.right_pin, GPIO.LOW)
     return "Gimbal rotated 60 degrees right."
 
 def gimbal_left(camera: Cam) -> None:
@@ -177,7 +199,9 @@ def gimbal_left(camera: Cam) -> None:
     """
     print("gimb left")
     camera.rotation -= 60
-    pass
+    GPIO.output(camera.left_pin, GPIO.HIGH)
+    time.sleep(GIMBAL_DELAY)
+    GPIO.output(camera.left_pin, GPIO.LOW)
     return "Gimbal rotated 60 degrees left."
 
 def take_pic(camera: Cam) -> str:
