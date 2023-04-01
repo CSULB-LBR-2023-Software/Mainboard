@@ -93,6 +93,7 @@ def cam_loop(commands: Queue, directory: str) -> None:
                 select(order[:2], CASE, camera)
             except TypeError:
                 continue
+        cam_module.reset_filters(camera)
     camera.release()
     print("Camera exit.")
 
@@ -115,9 +116,11 @@ def close_queue(commands: Queue) -> None:
 
 def timeout(commands: Queue, read: Process) -> None:
     """Testing purposes only. @Jojo"""
-    MISSION = "C3 D4 F6 G7 C3 E5 F6 H8 D4 C3"
-    WAIT = 5 # change this to 300 (5 min) or whatever 
+    HC_MISSION = "C3 A1 D4 C3 E5 A1 G7 C3 H8 A1 F6 C3"
+    MISSION = "C3 B2 G7 C3 H8 F6 B2 C3 F6 B2 B2 D4 C3"
+    WAIT = 300 # change this to 300 (5 min) or whatever 
     def put():
+        commands.put(f"{HC_MISSION}")
         commands.put(f"{MISSION}")
         commands.put(END)
         read.terminate()
