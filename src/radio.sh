@@ -64,6 +64,8 @@ if [ "$args" -lt 1 ]; then
 	radio=true
 fi
 
+python3 demo.py
+
 if [ "$radio" = true ]; then
 	rtl_fm -f 144.390M -s 22050 | multimon-ng -t raw -a AFSK1200 -f alpha /dev/stdin | sed -u -n -e 's/^.*\(KN6WUV \)/\1/p' | python3 radio_mp.py
 elif [ "$debug" = true ]; then
