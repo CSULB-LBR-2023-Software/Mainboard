@@ -2,7 +2,6 @@
 
 import adafruit_bmp3xx
 import adafruit_bno055
-import board
 import numpy as np
 import os
 import sys
@@ -178,9 +177,10 @@ if __name__ == "__main__":
 
     #states.setNewState(States.DEPLOYMENT, States.DEPLOYMENT_SUBS)
     print("Exit for deployment")
+    print("Make sure to set deployment state at beginning of deployment file.")
     sys.exit(2)
 
-    print(states)
+    #print(states)
 
 
     """
