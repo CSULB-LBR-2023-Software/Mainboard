@@ -8,6 +8,22 @@ PATH = f"./{FILE_NAME}.json"
 PI_PATH = f"/home/pi/{FILE_NAME}.json"
 
 class States:
+    """State machine states."""
+
+    class Substates:
+        """State machine substates."""
+
+        RAIL = "Rail"
+        LAUNCH = "Launch"
+        LAND = "Land"
+
+        DIRTBRAKE = "Dirtbrake"
+        BAY = "Bay"
+        ARM = "Arm"
+        GIMBAL = "Gimbal"
+
+        EXECUTION = "Execution"
+        COMPLETION = "Completion"
 
     CURRENT = "CurrentState"
     PREDEPLOYMENT = "Predeployment"
@@ -15,24 +31,22 @@ class States:
     MISSION = "Mission"
 
     PREDEPLOYMENT_SUBS = {
-        "Rail": True,
-        "Ascent": False,
-        "Descent": False,
-        "Land": False,
+        Substates.RAIL: True,
+        Substates.LAUNCH: False,
+        Substates.LAND: False,
     }
 
     DEPLOYMENT_SUBS = {
-        "Dirtbrake": False,
-        "Bay": False,
-        "Arm": False,
-        "Gimbal": False,
+        Substates.DIRTBRAKE: False,
+        Substates.BAY: False,
+        Substates.ARM: False,
+        Substates.GIMBAL: False,
     }
 
     MISSION_SUBS = {
-        "Execution": False,
-        "Completion": False,
+        Substates.EXECUTION: False,
+        Substates.COMPLETION: False,
     }
-
 
 class StateMachine:
 

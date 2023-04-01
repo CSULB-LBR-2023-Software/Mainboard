@@ -4,10 +4,12 @@ import adafruit_bmp3xx
 import adafruit_bno055
 import board
 import numpy as np
+import os
 import sys
 import time 
 
 from adafruit_extended_bus import ExtendedI2C as I2C
+from collections import Counter
 from math import pow, sqrt
 from state_machine import States, StateMachine
 
@@ -17,6 +19,12 @@ SENSOR_I2C_BUS = 5  #using I2C bus 5
 FILE_NAME = "missionStates"
 PATH = f"./{FILE_NAME}.json"
 
+SAMPLES = 100
+LIN_ACCEL_CEILING = 35
+LIN_ACCEL_FLOOR = 2
+ALT_CEILING = 100
+ALT_FLOOR = 20
+
 
 class IMU:
     "I2C BNO055 sensor poller."""
@@ -25,7 +33,7 @@ class IMU:
         """Creates a new IMU sampler using an I2C BNO055 object."""
         self.imu = imu
 
-    def linear_accel(self, samples: int, averaged: bool=True) -> np.array:
+    def linear_accel(self, samples: int, averaged: bool=True) -> np.ndarray:
         """Polls acceleration samples and returns the average.
 
         Args:
@@ -52,7 +60,7 @@ class BARO:
         self.baro = baro
         self.ground = ground
 
-    def altitude(self, samples: int, averaged: bool=True) -> np.array:
+    def altitude(self, samples: int, averaged: bool=True) -> np.ndarray:
         """Polls altitude samples and returns the average."""
         ret = np.zeros([samples, 1])
         for i in range(samples):
@@ -88,46 +96,79 @@ def vector_mag(vector: np.ndarray) -> int:
     """
     return sqrt(sum(pow(val, 2) for val in vector))
 
-def majority_bool(*bool_args: bool) -> bool:
-    """Checks whether bool arguments are majority True.
+def majority(*args) -> object:
+    """Checks for majority elements.
+
+    ** MAKE SURE TO PASS MOST RELIABLE OBJECT FIRST, IE STM
 
     Args:
-        *bool_args(bool): var args for any number of bool values
+        *args: Var args for any number of variables
     
     Returns:
-        bool: True if majority of parameters are True, otherwise False
+        object: The most common element, or the first passed element
+        if there is no most common
     """
-    bools = [x for x in bool_args]
-    return bools.count(True) > (len(bools) / 2)
+    vars = Counter([x for x in args])
+    return vars.most_common(1)[0][0]
+
+def pollSTMSubstate(uc) -> str:
+    return States.PREDEPLOYMENT
+
+def checkPiState(samples: int, rail: bool) -> str:
+    acc = imu.linear_accel(samples)
+    alt = baro.altitude(samples)
+    if not rail:
+        if not vector_mag(acc) > LIN_ACCEL_CEILING and not alt > ALT_CEILING:
+            return States.Substates.LAUNCH
+        return States.Substates.RAIL
+    else:
+        if not vector_mag(acc) < LIN_ACCEL_FLOOR and not alt > ALT_FLOOR:
+            return States.Substates.LAND
+        return States.Substates.LAUNCH
+
 
 if __name__ == "__main__":
     # state machine setup
-    states = StateMachine(PATH)
-    states.setNewState(States.PREDEPLOYMENT, States.PREDEPLOYMENT_SUBS)
+    if not os.path.exists(PATH):
+        states = StateMachine(PATH)
+        states.setNewState(States.PREDEPLOYMENT, States.PREDEPLOYMENT_SUBS)
+    else:
+        states = StateMachine(PATH)
+        json = (states.getState(), states.getSubstate())
+        maj_states = majority(json)
+        states.setNewState(maj_states[0], maj_states[1])
+
     print(f"State: {states.getState()} | Substate: {states.getSubstate()}")
     print(states)
-    
+
+    rail = False
+
     # sensor setup
     imu, baro = setup(SENSOR_I2C_BUS)
+
+    # check launch
+    if pollSTMSubstate() is States.Substates.RAIL:
+        rail = True
+        print("On Rail")
+        vote = majority(States.Substates.RAIL, States.Substates.RAIL, checkPiState(SAMPLES, rail))
+        while vote is not States.Substates.LAUNCH:
+            vote = majority(States.Substates.RAIL, States.Substates.RAIL, checkPiState(SAMPLES, rail))
+        states.updateState(States.PREDEPLOYMENT, vote, True)
+        print("Launch detected")
+        rail = False
     
-    # launch check
-    acc = imu.linear_accel(100)
-    alt = baro.altitude(100)
-    while not vector_mag(acc) > 35 and not alt > 100:
-        print(f"Linear Acc: {vector_mag(acc)} | Alt: {alt}")
-        acc = imu.linear_accel(100)
-        alt = baro.altitude(100)
-    states.updateState(States.PREDEPLOYMENT, "Launch", True)
-    
-    # land check  
-    while not vector_mag(acc) < 2 and not alt > 20:
-        print(f"Linear Acc: {vector_mag(acc)} | Alt: {alt}")
-        acc = imu.linear_accel(100)
-        alt = baro.altitude(100)
-    states.updateState(States.PREDEPLOYMENT, "Land", True)
+    # check land
+    print(states)
+
+    vote = majority(pollSTMSubstate(), pollSTMSubstate(), checkPiState(SAMPLES, rail))
+    while vote is not States.Substates.LAND:
+        vote = majority(pollSTMSubstate(), pollSTMSubstate(), checkPiState(SAMPLES, rail))
+    states.updateState(States.PREDEPLOYMENT, vote, True)
+    print("Land detected")
 
     states.setNewState(States.DEPLOYMENT, States.DEPLOYMENT_SUBS)
-    
+
+    print(states)
 
 
     """
