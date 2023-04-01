@@ -6,7 +6,7 @@ import board
 import numpy as np
 import os
 import sys
-import time 
+import time
 
 from adafruit_extended_bus import ExtendedI2C as I2C
 from collections import Counter
@@ -20,9 +20,9 @@ FILE_NAME = "missionStates"
 PATH = f"./{FILE_NAME}.json"
 
 SAMPLES = 100
-LIN_ACCEL_CEILING = 35
+LIN_ACCEL_CEILING = 12 # 35
 LIN_ACCEL_FLOOR = 2
-ALT_CEILING = 100
+ALT_CEILING = 0 # 100
 ALT_FLOOR = 20
 
 
@@ -103,7 +103,7 @@ def majority(*args) -> object:
 
     Args:
         *args: Var args for any number of variables
-    
+
     Returns:
         object: The most common element, or the first passed element
         if there is no most common
@@ -112,13 +112,15 @@ def majority(*args) -> object:
     return vars.most_common(1)[0][0]
 
 def pollSTMSubstate(uc) -> str:
-    return States.PREDEPLOYMENT
+    "DEBUGGING"
+    return States.Substates.RAIL
 
 def checkPiState(samples: int, rail: bool) -> str:
     acc = imu.linear_accel(samples)
     alt = baro.altitude(samples)
     if not rail:
-        if not vector_mag(acc) > LIN_ACCEL_CEILING and not alt > ALT_CEILING:
+        accAvg = vector_mag(acc)
+        if not accAvg > LIN_ACCEL_CEILING and not alt > ALT_CEILING:
             return States.Substates.LAUNCH
         return States.Substates.RAIL
     else:
@@ -134,12 +136,19 @@ if __name__ == "__main__":
         states.setNewState(States.PREDEPLOYMENT, States.PREDEPLOYMENT_SUBS)
     else:
         states = StateMachine(PATH)
-        json = (states.getState(), states.getSubstate())
+        json = (states.getSubstate())
         maj_states = majority(json)
-        states.setNewState(maj_states[0], maj_states[1])
+        if maj_states in States.DEPLOYMENT_SUBS.keys():
+            print("Exit Deployment")
+            sys.exit(2)
+        if maj_states in States.MISSION_SUBS.keys():
+            print("Exit mission")
+            sys.exit(3)
+        if maj_states in States.PREDEPLOYMENT_SUBS.keys():
+            print("Continuing Predeployment")
 
     print(f"State: {states.getState()} | Substate: {states.getSubstate()}")
-    print(states)
+    #print(states)
 
     rail = False
 
@@ -147,26 +156,29 @@ if __name__ == "__main__":
     imu, baro = setup(SENSOR_I2C_BUS)
 
     # check launch
-    if pollSTMSubstate() is States.Substates.RAIL:
+    if pollSTMSubstate("stmID") is States.Substates.RAIL:
         rail = True
         print("On Rail")
-        vote = majority(States.Substates.RAIL, States.Substates.RAIL, checkPiState(SAMPLES, rail))
+        vote = majority(pollSTMSubstate("stmID"), pollSTMSubstate("stmID"), checkPiState(SAMPLES, rail))
         while vote is not States.Substates.LAUNCH:
-            vote = majority(States.Substates.RAIL, States.Substates.RAIL, checkPiState(SAMPLES, rail))
+            vote = majority(pollSTMSubstate("stmID"), pollSTMSubstate("stmID"), checkPiState(SAMPLES, rail))
+            print(vote)
         states.updateState(States.PREDEPLOYMENT, vote, True)
         print("Launch detected")
         rail = False
-    
+
     # check land
     print(states)
 
-    vote = majority(pollSTMSubstate(), pollSTMSubstate(), checkPiState(SAMPLES, rail))
+    vote = majority(pollSTMSubstate("stmID"), pollSTMSubstate("stmID"), checkPiState(SAMPLES, rail))
     while vote is not States.Substates.LAND:
-        vote = majority(pollSTMSubstate(), pollSTMSubstate(), checkPiState(SAMPLES, rail))
+        vote = majority(pollSTMSubstate("stmID"), pollSTMSubstate("stmID"), checkPiState(SAMPLES, rail))
     states.updateState(States.PREDEPLOYMENT, vote, True)
     print("Land detected")
 
-    states.setNewState(States.DEPLOYMENT, States.DEPLOYMENT_SUBS)
+    #states.setNewState(States.DEPLOYMENT, States.DEPLOYMENT_SUBS)
+    print("Exit for deployment")
+    sys.exit(2)
 
     print(states)
 
