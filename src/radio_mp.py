@@ -15,7 +15,6 @@ from sys import stdin
 from threading import Timer
 
 import cam_module
-import my_logging as log
 from cam_module import Cam
 
 # CONSTANTS ---------------------------------------------------|
@@ -75,7 +74,7 @@ def select(order: str, case: dict, camera: Cam) -> None:
     """
     ret = case.get(order)(camera)
     if ret:
-        log.log_event(ret)
+        print(ret)
 
 
 def cam_loop(commands: Queue, directory: str) -> None:
@@ -132,9 +131,6 @@ def timeout(commands: Queue, read: Process) -> None:
 
 if __name__ == "__main__":
     freeze_support()
-
-    # setup logger
-    log.setup()
 
     # create shared queue for commands
     com_queue = Queue()
