@@ -25,6 +25,9 @@ END = None
 
 DIRECTORY = "/home/pi/"
 
+HC_MISSION = "C3 A1 D4 C3 E5 A1 G7 C3 H8 A1 F6 C3"
+HC_WAIT = 300 # change this to 300 (5 min) or whatever 
+
 # CAMERA DICT -------------------------------------------------|
 CASE = {
     "A1": cam_module.gimbal_right,
@@ -93,6 +96,7 @@ def cam_loop(commands: Queue, directory: str) -> None:
                 select(order[:2], CASE, camera)
             except TypeError:
                 continue
+        cam_module.reset_filters(camera)
     camera.release()
     print("Camera exit.")
 
@@ -114,14 +118,16 @@ def close_queue(commands: Queue) -> None:
 
 
 def timeout(commands: Queue, read: Process) -> None:
-    """Testing purposes only. @Jojo"""
-    MISSION = "C3 D4 F6 G7 C3 E5 F6 H8 D4 C3"
-    WAIT = 5 # change this to 300 (5 min) or whatever 
+    """Hardcode commands + exit if radio transmission fails.
+    @param commands(Queue): Queue of commands.
+    @param(Process): the read process.
+    @return None: None
+    """
     def put():
-        commands.put(f"{MISSION}")
+        commands.put(f"{HC_MISSION}")
         commands.put(END)
         read.terminate()
-    Timer(WAIT, put).start()
+    Timer(HC_WAIT, put).start()
 
 
 if __name__ == "__main__":
