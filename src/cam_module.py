@@ -7,9 +7,16 @@ completion of Payload Mission for NASA USLI with Long Beach Rocketry.
 
 import datetime
 from enum import Enum
+import time
 
 import cv2
 import numpy as np
+import RPi.GPIO as GPIO
+
+# CONSTANTS
+RIGHT_PIN = 9
+LEFT_PIN = 10
+GIMBAL_DELAY = 1
 
 # Camera class to access OpenCV library for camera "functions"
 # CLASS ----------------------------------------------------------------------|
@@ -42,6 +49,19 @@ class Cam:
         self.img_counter = 0
         self.rotation = 0
         self.dir = rf"{path}"
+        self.right_pin = RIGHT_PIN
+        self.left_pin = LEFT_PIN
+        self.setup_pins(self.right_pin, self.left_pin)
+
+    def setup_pins(self, *pins: int) -> None:
+        """
+        Sets up GPIO pins
+        @param pins(int): var args for pins to init as output
+        """
+        GPIO.setmode(GPIO.BCM)
+        for pin in pins:
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, GPIO.LOW)
 
     def snapshot(self) -> bool:
         """
@@ -87,7 +107,7 @@ class Cam:
         )
 
     @staticmethod
-    def timestamp(time: datetime, img: cv2.Mat) -> cv2.Mat:
+    def timestamp(time: datetime, img):
         """
         Timestamps and returns an existing image
         @param time(datetime): current time
@@ -106,7 +126,7 @@ class Cam:
         )
 
     @staticmethod
-    def flip(img: cv2.Mat) -> cv2.Mat:
+    def flip(img):
         """
         Flips and returns existing image 180 degrees
         @param img(cv2.Mat): path for image (already read using cv2.imread())
@@ -117,7 +137,7 @@ class Cam:
         return cv2.flip(img, 0)
 
     @staticmethod
-    def g_scale(img: cv2.Mat) -> cv2.Mat:
+    def g_scale(img):
         """
         Converts and returns existing image in grayscale
         Radio Commands: D4 - ON, E5 - OFF
@@ -127,7 +147,7 @@ class Cam:
         return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     @staticmethod
-    def sharp_f(img: cv2.Mat) -> cv2.Mat:
+    def sharp_f(img):
         """
         Adds and returns existing image with 'sharpen' filter applied
         @param img(cv2.Mat): path for image (already read using cv2.imread())
@@ -153,7 +173,7 @@ class Cam:
 
 
 # ADDITIONAL FUNCTIONS -------------------------------------------------------|
-# Used for hashing individual commands to functions 
+# Used for hashing individual commands to functions
 def gimbal_right(camera: Cam) -> str:
     """
     Rotates gimbal 60 degrees right.
@@ -164,7 +184,10 @@ def gimbal_right(camera: Cam) -> str:
     """
     print("gimb right")
     camera.rotation += 60
-    pass
+    GPIO.output(camera.right_pin, GPIO.HIGH)
+    GPIO.output(camera.left_pin, GPIO.LOW)
+    time.sleep(GIMBAL_DELAY)
+    GPIO.output(camera.right_pin, GPIO.LOW)
     return "Gimbal rotated 60 degrees right."
 
 def gimbal_left(camera: Cam) -> None:
@@ -177,7 +200,10 @@ def gimbal_left(camera: Cam) -> None:
     """
     print("gimb left")
     camera.rotation -= 60
-    pass
+    GPIO.output(camera.left_pin, GPIO.HIGH)
+    GPIO.output(camera.right_pin, GPIO.LOW)
+    time.sleep(GIMBAL_DELAY)
+    GPIO.output(camera.left_pin, GPIO.LOW)
     return "Gimbal rotated 60 degrees left."
 
 def take_pic(camera: Cam) -> str:
